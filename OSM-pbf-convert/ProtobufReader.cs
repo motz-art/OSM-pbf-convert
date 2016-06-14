@@ -9,10 +9,7 @@ namespace OSM_pbf_convert
     public class ProtobufReader
     {
         Stream stream;
-        byte[] buf;
-        int available = 0;
-        int offset = 0;
-        long bufOffset = 0;
+        long position = 0;
         bool isEOF = false;
         Stack<long> messageStack = new Stack<long>();
         private ulong currentKey;
@@ -20,7 +17,6 @@ namespace OSM_pbf_convert
         public ProtobufReader(Stream stream, long length)
         {
             this.stream = stream;
-            buf = new byte[1024 * 8];
             messageStack.Push(length);
         }
 
@@ -28,7 +24,7 @@ namespace OSM_pbf_convert
         {
             get
             {
-                return bufOffset + offset;
+                return position;
             }
         }
 
@@ -52,14 +48,18 @@ namespace OSM_pbf_convert
         {
             switch (FieldType)
             {
-                case FieldTypes.VarInt: await ReadVarUInt64();
+                case FieldTypes.VarInt:
+                    await ReadVarUInt64();
                     break;
-                case FieldTypes.LengthDelimited: var length = await ReadVarUInt64();
+                case FieldTypes.LengthDelimited:
+                    var length = await ReadVarUInt64();
                     await ReadBytesAsync((uint)length);
                     break;
-                case FieldTypes.Fixed32: await ReadBytesAsync(4);
+                case FieldTypes.Fixed32:
+                    await ReadBytesAsync(4);
                     break;
-                case FieldTypes.Fixed64: await ReadBytesAsync(8);
+                case FieldTypes.Fixed64:
+                    await ReadBytesAsync(8);
                     break;
                 default:
                     throw new NotImplementedException(string.Format("Can't skip #{0} of type {1}.", FieldNumber, FieldType));
@@ -102,7 +102,7 @@ namespace OSM_pbf_convert
             return (long)await ReadUInt64Async();
         }
 
-        public ProtobufReaderState State { get; private set;}
+        public ProtobufReaderState State { get; private set; }
 
         public async Task<uint> ReadInt32BigEndian()
         {
@@ -140,7 +140,7 @@ namespace OSM_pbf_convert
             byte b;
             do
             {
-                b = await ReadByte();
+                b = await ReadByteAsync();
                 result = result + ((b & (ulong)0x7f) << shift);
                 shift += 7;
                 if (shift > 63)
@@ -153,7 +153,7 @@ namespace OSM_pbf_convert
 
         public async Task<Int64> ReadVarInt64Async()
         {
-            return (long) await ReadUInt64Async();
+            return (long)await ReadUInt64Async();
         }
 
         public async Task BeginReadMessage()
@@ -241,67 +241,48 @@ namespace OSM_pbf_convert
             State = ProtobufReaderState.Field;
         }
 
-        private async Task<byte> ReadByte()
+        private async Task<byte> ReadByteAsync()
         {
             if (isEOF)
             {
                 throw new InvalidOperationException("Can't read beyond end of file.");
             }
-            if (Position + 1 > messageStack.Peek())
+            if (Position >= messageStack.Peek())
             {
                 throw new InvalidOperationException("Length exceeds message boundary.");
             }
-
-            if (offset == available)
+            var buf = new byte[1];
+            var bytesRead = await stream.ReadAsync(buf, 0, 1);
+            if (bytesRead == 0)
             {
-                bufOffset += available;
-                available = await stream.ReadAsync(buf, 0, buf.Length);
-                offset = 0;
-                if (available == 0)
-                {
-                    isEOF = true;
-                    throw new InvalidOperationException("Can't read beyond end of file.");
-                }
+                isEOF = true;
+                throw new InvalidOperationException("Can't read beyond end of file.");
             }
-            var i = offset;
-            offset++;
-            return buf[i];
+            position += bytesRead;
+            return buf[0];
         }
 
         private async Task<byte[]> ReadBytesAsync(uint length)
         {
             var result = new byte[length];
-            var resultOffset = 0;
+            int resultOffset = 0;
             if (Position + length > messageStack.Peek())
             {
                 throw new InvalidOperationException("Length exceeds message boundary.");
             }
-            while (true)
+
+            while (resultOffset < length)
             {
-                if (offset >= available)
+                var bytesRead = await stream.ReadAsync(result, resultOffset, 
+                    (int)length - resultOffset);
+                if (bytesRead == 0)
                 {
-                    bufOffset += available;
-                    available = await stream.ReadAsync(buf, 0, buf.Length);
-                    offset = 0;
-                    if (available == 0)
-                    {
-                        isEOF = true;
-                        throw new InvalidOperationException("EOF");
-                    }
+                    throw new InvalidOperationException("Unexpected end of file.");
                 }
-                if (available - offset >= length - resultOffset)
-                {
-                    Array.Copy(buf, offset, result, resultOffset, length - resultOffset);
-                    offset += (int)length - resultOffset;
-                    return result;
-                }
-                if (available - offset < length - resultOffset)
-                {
-                    Array.Copy(buf, offset, result, resultOffset, available - offset);
-                    resultOffset += available - offset;
-                    offset = available;
-                }
+                position += bytesRead;
+                resultOffset += bytesRead;
             }
+            return result;
         }
 
     }
