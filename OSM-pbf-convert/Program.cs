@@ -1,102 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
-    public class PbfParser
-    {
-        ProtobufReader reader;
-
-        public PbfParser(Stream stream)
-        {
-            reader = new ProtobufReader(stream);
-        }
-
-        private Task<uint> ReadHeaderLength()
-        {
-            return reader.ReadInt32BigEndian();
-        }
-
-        public async Task<BlobHeader> ReadBlobHeader()
-        {
-            var headerSize = await ReadHeaderLength();
-            await reader.BeginReadMessage(headerSize);
-            var result = new BlobHeader();
-
-            while (reader.State != ProtobufReaderState.EndOfMessage)
-            {
-                switch (reader.FieldNumber)
-                {
-                    case 1: result.Type = await reader.ReadStringAsync();
-                        break;
-                    case 3: result.DataSize = await reader.ReadUInt64Async();
-                        break;
-                    default: reader.Skip();
-                        break;
-                }
-            }
-            await reader.EndReadMessageAsync();
-
-            return result;
-        }
-
-        public async Task<Blob> ReadBlobAsync(BlobHeader header)
-        {
-            await reader.BeginReadMessage((long)header.DataSize);
-            Blob result = new Blob();
-            while (reader.State != ProtobufReaderState.EndOfMessage)
-            {
-                switch (reader.FieldNumber)
-                {
-                    case 1: result.Type = BlobTypes.Raw;
-                        result.Data = await reader.ReadAsStreamAsync();
-                        result.RawSize = result.Data.Length;
-                        break;
-                    case 2: result.RawSize = (long) await reader.ReadUInt64Async();
-                        break;
-                    case 3: result.Type = BlobTypes.ZLib;
-                        result.Data = await reader.ReadAsStreamAsync();
-                        break;
-                    case 4:
-                        result.Type = BlobTypes.LZMA;
-                        result.Data = await reader.ReadAsStreamAsync();
-                        break;
-                    case 5:
-                        result.Type = BlobTypes.BZip;
-                        result.Data = await reader.ReadAsStreamAsync();
-                        break;
-                    default:
-                        reader.Skip();
-                        break;
-                }
-            }
-            await reader.EndReadMessageAsync();
-            return result;
-        }
-    }
-
     class Program
     {
         static async Task Process(string fileName)
         {
+            ulong maxBlobSize = 0;
+            long maxDataSize = 0;
+            var blobCnt = 0;
+
             using (var stream = File.OpenRead(fileName))
             {
-                var parser = new PbfParser(stream);
-                while (true)
+                try {
+                    var parser = new PbfBlobParser(stream);
+                    while (true)
+                    {
+                        var blobHeader = await parser.ReadBlobHeader();
+                        if (blobHeader == null) break;
+                        var message = await parser.ReadBlobAsync(blobHeader);
+                        blobCnt++;
+                        maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
+                        maxDataSize = Math.Max(maxDataSize, message.RawSize);
+                        var primitiveParser = new PbfPrimitiveParser(blobHeader, message);
+                        if (blobHeader.Type == "OSMHeader")
+                        {
+                            var header = await primitiveParser.ParseHeader();
+                        }
+                        if (blobHeader.Type == "OSMData")
+                        {
+                            await primitiveParser.ParseDataAsync();
+                        }
+                    }
+                }
+                catch (Exception e)
                 {
-                    var blobHeader = await parser.ReadBlobHeader();
-                    var message = await parser.ReadBlobAsync(blobHeader);
+                    Console.WriteLine($"Error processing file. After reading {stream.Position} of {stream.Length} bytes.");
+                    Console.WriteLine(e);
                 }
             }
+            Console.WriteLine($"Statistic: max blob {maxBlobSize}, data: {maxDataSize}, total cnt: {blobCnt}");
             Console.ReadLine();
         }
 
         static void Main(string[] args)
         {
+            if (args.Length != 1)
+            {
+                Console.WriteLine("Pbf file name is not specified.");
+                return;
+            }
             Task.Run(() => Process(args[0]).Wait()).Wait();
         }
     }

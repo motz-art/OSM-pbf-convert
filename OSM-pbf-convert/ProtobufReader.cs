@@ -12,22 +12,23 @@ namespace OSM_pbf_convert
         byte[] buf;
         int available = 0;
         int offset = 0;
+        long bufOffset = 0;
         bool isEOF = false;
         Stack<long> messageStack = new Stack<long>();
         private ulong currentKey;
 
-        public ProtobufReader(Stream stream)
+        public ProtobufReader(Stream stream, long length)
         {
             this.stream = stream;
-            buf = new byte[10224 * 8];
-            messageStack.Push(stream.Length);
+            buf = new byte[1024 * 8];
+            messageStack.Push(length);
         }
 
         public long Position
         {
             get
             {
-                return stream.Position + offset;
+                return bufOffset + offset;
             }
         }
 
@@ -47,30 +48,23 @@ namespace OSM_pbf_convert
             }
         }
 
-        public async Task EndReadMessageAsync()
+        public async Task SkipAsync()
         {
-            if (messageStack.Count == 1)
+            switch (FieldType)
             {
-                throw new InvalidOperationException("Message stack is empty.");
+                case FieldTypes.VarInt: await ReadVarUInt64();
+                    break;
+                case FieldTypes.LengthDelimited: var length = await ReadVarUInt64();
+                    await ReadBytesAsync((uint)length);
+                    break;
+                case FieldTypes.Fixed32: await ReadBytesAsync(4);
+                    break;
+                case FieldTypes.Fixed64: await ReadBytesAsync(8);
+                    break;
+                default:
+                    throw new NotImplementedException(string.Format("Can't skip #{0} of type {1}.", FieldNumber, FieldType));
             }
-            if (Position != messageStack.Peek())
-            {
-                throw new InvalidOperationException("Message is not read till the end.");
-            }
-            messageStack.Pop();
-            if (messageStack.Count > 1)
-            {
-                await UpdateState();
-            }
-            else
-            {
-                State = ProtobufReaderState.None;
-            }
-        }
-
-        internal void Skip()
-        {
-            throw new NotImplementedException(string.Format("Can't skip #{0} of type {1}.", FieldNumber, FieldType));
+            await UpdateState();
         }
 
         public async Task<Stream> ReadAsStreamAsync()
@@ -83,6 +77,29 @@ namespace OSM_pbf_convert
             var bytes = await ReadBytesAsync((uint)length);
             await UpdateState();
             return new MemoryStream(bytes);
+        }
+
+        public async Task<long> ReadSInt64Async()
+        {
+            var tmp = await ReadUInt64Async();
+            long value = ZigZagDecode(tmp);
+            return value;
+        }
+
+        private static long ZigZagDecode(ulong tmp)
+        {
+            var value = (long)(tmp >> 1);
+            if ((tmp & 0x01) != 0)
+            {
+                value = -1 ^ value;
+            }
+
+            return value;
+        }
+
+        public async Task<long> ReadInt64Async()
+        {
+            return (long)await ReadUInt64Async();
         }
 
         public ProtobufReaderState State { get; private set;}
@@ -134,25 +151,22 @@ namespace OSM_pbf_convert
             return result;
         }
 
-        public async Task<Int64> ReadVarInt64()
+        public async Task<Int64> ReadVarInt64Async()
         {
-            Int64 result = 0;
-            byte b;
-            while (true)
-            {
-                b = await ReadByte();
-                result = (result << 7) + (b & 0x7f);
-                if ((b & 0x80) == 0)
-                {
-                    if ((b & 0x40) != 0)
-                    {
-                        result = -1 & result;
-                    }
+            return (long) await ReadUInt64Async();
+        }
 
-                    break;
-                }
+        public async Task BeginReadMessage()
+        {
+            if (FieldType == FieldTypes.LengthDelimited)
+            {
+                var size = await ReadVarUInt64();
+                await BeginReadMessage((long)size);
             }
-            return result;
+            else
+            {
+                throw new InvalidOperationException($"Cant start reading message from {FieldType} field.");
+            }
         }
 
         public async Task BeginReadMessage(long length)
@@ -161,8 +175,54 @@ namespace OSM_pbf_convert
             {
                 throw new ArgumentException("length should be zero or greater.");
             }
-            messageStack.Push(Position + length);
+            var endOfMessage = Position + length;
+            if (endOfMessage > messageStack.Peek())
+            {
+                throw new ArgumentException("Length of message is out of parrent message bound.");
+            }
+            messageStack.Push(endOfMessage);
             await UpdateState();
+        }
+
+        public async Task EndReadMessageAsync()
+        {
+            if (messageStack.Count == 1)
+            {
+                throw new InvalidOperationException("Message stack is empty.");
+            }
+            if (Position != messageStack.Peek())
+            {
+                throw new InvalidOperationException("Message is not read till the end.");
+            }
+            messageStack.Pop();
+            if (messageStack.Count > 1)
+            {
+                await UpdateState();
+            }
+            else
+            {
+                State = ProtobufReaderState.None;
+            }
+        }
+
+        public async Task<IEnumerable<long>> ReadPaskedSInt64ArrayAsync()
+        {
+            var result = new List<long>();
+            if (FieldType == FieldTypes.LengthDelimited)
+            {
+                var size = await ReadVarUInt64();
+                var endPosition = Position + (long)size;
+                while (Position < endPosition)
+                {
+                    result.Add(ZigZagDecode(await ReadVarUInt64()));
+                }
+                await UpdateState();
+            }
+            else
+            {
+                result.Add(await ReadSInt64Async());
+            }
+            return result;
         }
 
         private async Task UpdateState()
@@ -194,6 +254,7 @@ namespace OSM_pbf_convert
 
             if (offset == available)
             {
+                bufOffset += available;
                 available = await stream.ReadAsync(buf, 0, buf.Length);
                 offset = 0;
                 if (available == 0)
@@ -219,6 +280,7 @@ namespace OSM_pbf_convert
             {
                 if (offset >= available)
                 {
+                    bufOffset += available;
                     available = await stream.ReadAsync(buf, 0, buf.Length);
                     offset = 0;
                     if (available == 0)

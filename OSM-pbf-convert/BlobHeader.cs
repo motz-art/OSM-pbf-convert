@@ -7,5 +7,6 @@ namespace OSM_pbf_convert
         public string Type { get; set; }
         public Stream IndexData { get; set; }
         public ulong DataSize { get; set; }
+        public long StartPosition { get; set; }
     }
 }
