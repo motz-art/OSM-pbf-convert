@@ -63,7 +63,7 @@
     <Compile Include="Node.cs" />
     <Compile Include="OsmHeader.cs" />
     <Compile Include="PbfBlobParser.cs" />
-    <Compile Include="PbfPrimitiveParser.cs" />
+    <Compile Include="PbfPrimitiveReader.cs" />
     <Compile Include="PrimitiveBlock.cs" />
     <Compile Include="PrimitiveGroup.cs" />
     <Compile Include="Program.cs" />

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
-    public class PbfPrimitiveParser
+    public class PbfPrimitiveReader
     {
         private BlobHeader blobHeader;
         private Blob blob;
         private ProtobufReader reader;
 
-        public PbfPrimitiveParser(BlobHeader blobHeader, Blob blob)
+        public PbfPrimitiveReader(BlobHeader blobHeader, Blob blob)
         {
             this.blobHeader = blobHeader;
             this.blob = blob;

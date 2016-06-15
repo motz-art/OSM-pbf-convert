@@ -51,7 +51,7 @@ namespace OSM_pbf_convert
 
         private static async Task<int> ProcessNodeCount(BlobHeader blobHeader, Blob message)
         {
-            var primitiveParser = new PbfPrimitiveParser(blobHeader, message);
+            var primitiveParser = new PbfPrimitiveReader(blobHeader, message);
             var nodeCnt = 0;
             if (blobHeader.Type == "OSMHeader")
             {
