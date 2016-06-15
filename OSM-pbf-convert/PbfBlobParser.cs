@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
@@ -18,7 +19,7 @@ namespace OSM_pbf_convert
 
         private Task<uint> ReadHeaderLength()
         {
-            return reader.ReadInt32BigEndian();
+            return reader.ReadInt32BigEndianAsync();
         }
 
         public async Task<BlobHeader> ReadBlobHeader()
@@ -33,7 +34,7 @@ namespace OSM_pbf_convert
                 result.StartPosition = reader.Position;
 
                 var headerSize = await ReadHeaderLength();
-                await reader.BeginReadMessage(headerSize);
+                await reader.BeginReadMessageAsync(headerSize);
 
                 while (reader.State != ProtobufReaderState.EndOfMessage)
                 {
@@ -66,11 +67,9 @@ namespace OSM_pbf_convert
             var startPosition = reader.Position;
             try
             {
-                var maxAvailableLength = Math.Min(fileLength - reader.Position, (long)header.DataSize);
+                 Console.WriteLine($"Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
 
-                Console.WriteLine($"Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
-
-                await reader.BeginReadMessage((long)header.DataSize);
+                await reader.BeginReadMessageAsync((long)header.DataSize);
                 Blob result = new Blob();
                 while (reader.State != ProtobufReaderState.EndOfMessage)
                 {
@@ -85,8 +84,16 @@ namespace OSM_pbf_convert
                             result.RawSize = (long)await reader.ReadUInt64Async();
                             break;
                         case 3:
-                            result.Type = BlobTypes.ZLib;
-                            result.Data = await reader.ReadAsStreamAsync();
+                            var blobDataStream = new MemoryStream();
+                            var stream = await reader.ReadAsStreamAsync();
+                            stream.Seek(2, SeekOrigin.Begin);
+                            using(var inflate = new DeflateStream(stream, CompressionMode.Decompress))
+                            {
+                                await inflate.CopyToAsync(blobDataStream);
+                            }
+                            blobDataStream.Position = 0;
+                            result.Type = BlobTypes.Raw;
+                            result.Data = blobDataStream;
                             break;
                         case 4:
                             result.Type = BlobTypes.LZMA;

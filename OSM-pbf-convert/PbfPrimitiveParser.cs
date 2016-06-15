@@ -38,7 +38,7 @@ namespace OSM_pbf_convert
 
         public async Task<OsmHeader> ParseHeader()
         {
-            await reader.BeginReadMessage(blob.RawSize);
+            await reader.BeginReadMessageAsync(blob.RawSize);
             var header = new OsmHeader();
             while (reader.State == ProtobufReaderState.Field)
             {
@@ -68,109 +68,111 @@ namespace OSM_pbf_convert
             return header;
         }
 
-        public async Task ParseDataAsync()
+        public PrimitiveBlock ParseData()
         {
-            await reader.BeginReadMessage(blob.RawSize);
+            reader.BeginReadMessage(blob.RawSize);
             var result = new PrimitiveBlock();
+            result.PrimitiveGroup = new List<PrimitiveGroup>();
             while (reader.State == ProtobufReaderState.Field)
             {
                 switch (reader.FieldNumber)
                 {
                     case 1:
-                        result.Strings = await ReadStringTableAsync();
+                        result.Strings = ReadStringTable();
                         break;
                     case 2:
-                        result.PrimitiveGroup = await ReadPrimitiveGroupAsync();
+                        result.PrimitiveGroup.Add(ReadPrimitiveGroup());
                         break;
                     case 17:
-                        result.Granularity = (int)await reader.ReadInt64Async();
+                        result.Granularity = (int)reader.ReadInt64();
                         break;
                     case 19:
-                        result.LatOffset = await reader.ReadInt64Async();
+                        result.LatOffset = reader.ReadInt64();
                         break;
                     case 20:
-                        result.LonOffset = await reader.ReadInt64Async();
+                        result.LonOffset = reader.ReadInt64();
                         break;
                     case 18:
-                        result.DateGranularity = (int)await reader.ReadInt64Async();
+                        result.DateGranularity = (int)reader.ReadInt64();
                         break;
                     default:
-                        await reader.SkipAsync();
+                        reader.Skip();
                         break;
                 }
             }
-            await reader.EndReadMessageAsync();
+            reader.EndReadMessage();
+            return result;
         }
 
-        private async Task<string[]> ReadStringTableAsync()
+        private string[] ReadStringTable()
         {
-            await reader.BeginReadMessage();
+            reader.BeginReadMessage();
             var strings = new List<string>();
             while (reader.State == ProtobufReaderState.Field)
             {
                 switch (reader.FieldNumber)
                 {
                     case 1:
-                        strings.Add(await reader.ReadStringAsync());
+                        strings.Add(reader.ReadString());
                         break;
                     default:
-                        await reader.SkipAsync();
+                        reader.Skip();
                         break;
                 }
             }
-            await reader.EndReadMessageAsync();
+            reader.EndReadMessage();
             return strings.ToArray();
         }
 
-        private async Task<PrimitiveGroup> ReadPrimitiveGroupAsync()
+        private PrimitiveGroup ReadPrimitiveGroup()
         {
-            await reader.BeginReadMessage();
+            reader.BeginReadMessage();
             var result = new PrimitiveGroup();
             while (reader.State == ProtobufReaderState.Field)
             {
                 switch (reader.FieldNumber)
                 {
                     case 2:
-                        result.DenseNodes = await ReadDenseNodesAsync();
+                        result.DenseNodes = ReadDenseNodes();
                         break;
                     default:
-                        await reader.SkipAsync();
+                        reader.Skip();
                         break;
                 }
             }
-            await reader.EndReadMessageAsync();
+            reader.EndReadMessage();
             return result;
         }
 
-        private async Task<DenseNodes> ReadDenseNodesAsync()
+        private DenseNodes ReadDenseNodes()
         {
-            await reader.BeginReadMessage();
+            reader.BeginReadMessage();
             var result = new DenseNodes();
             while (reader.State == ProtobufReaderState.Field)
             {
                 switch (reader.FieldNumber)
                 {
                     case 1:
-                        result.Ids.AddRange(await reader.ReadPaskedSInt64ArrayAsync());
+                        result.Ids.AddRange(reader.ReadPackedSInt64Array());
                         break;
                     case 8:
-                        result.Latitudes.AddRange(await reader.ReadPaskedSInt64ArrayAsync());
+                        result.Latitudes.AddRange(reader.ReadPackedSInt64Array());
                         break;
                     case 9:
-                        result.Longitudes.AddRange(await reader.ReadPaskedSInt64ArrayAsync());
+                        result.Longitudes.AddRange(reader.ReadPackedSInt64Array());
                         break;
                     default:
-                        await reader.SkipAsync();
+                        reader.Skip();
                         break;
                 }
             }
-            await reader.EndReadMessageAsync();
+            reader.EndReadMessage();
             return result;
         }
 
         private async Task<BoundBox> ParseBoundBoxAsync()
         {
-            await reader.BeginReadMessage();
+            await reader.BeginReadMessageAsync();
             var result = new BoundBox();
             while (reader.State == ProtobufReaderState.Field)
             {

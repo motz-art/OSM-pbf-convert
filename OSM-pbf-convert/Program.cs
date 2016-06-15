@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -15,11 +16,13 @@ namespace OSM_pbf_convert
             ulong maxBlobSize = 0;
             long maxDataSize = 0;
             var blobCnt = 0;
+            long nodeCnt = 0;
 
             using (var stream = File.OpenRead(fileName))
             {
                 try {
                     var parser = new PbfBlobParser(stream);
+                    Task<int> currentPrimitiveProcessingTask = null;
                     while (true)
                     {
                         var blobHeader = await parser.ReadBlobHeader();
@@ -28,15 +31,12 @@ namespace OSM_pbf_convert
                         blobCnt++;
                         maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
                         maxDataSize = Math.Max(maxDataSize, message.RawSize);
-                        var primitiveParser = new PbfPrimitiveParser(blobHeader, message);
-                        if (blobHeader.Type == "OSMHeader")
+                        if (currentPrimitiveProcessingTask!=null)
                         {
-                            var header = await primitiveParser.ParseHeader();
+                            nodeCnt += await currentPrimitiveProcessingTask;
+                            Console.WriteLine($"Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.");
                         }
-                        if (blobHeader.Type == "OSMData")
-                        {
-                            await primitiveParser.ParseDataAsync();
-                        }
+                        currentPrimitiveProcessingTask = Task.Run(() => ProcessNodeCount(blobHeader, message));
                     }
                 }
                 catch (Exception e)
@@ -45,8 +45,25 @@ namespace OSM_pbf_convert
                     Console.WriteLine(e);
                 }
             }
-            Console.WriteLine($"Statistic: max blob {maxBlobSize}, data: {maxDataSize}, total cnt: {blobCnt}");
+            Console.WriteLine($"Statistic: max blob {maxBlobSize}, data: {maxDataSize}, total cnt: {blobCnt}, nodes: {nodeCnt}");
             Console.ReadLine();
+        }
+
+        private static async Task<int> ProcessNodeCount(BlobHeader blobHeader, Blob message)
+        {
+            var primitiveParser = new PbfPrimitiveParser(blobHeader, message);
+            var nodeCnt = 0;
+            if (blobHeader.Type == "OSMHeader")
+            {
+                var header = await primitiveParser.ParseHeader();
+            }
+            if (blobHeader.Type == "OSMData")
+            {
+                var data = primitiveParser.ParseData();
+                nodeCnt += data?.PrimitiveGroup?.Select(x=>x.DenseNodes?.Ids?.Count ?? 0).Sum() ?? 0;
+            }
+
+            return nodeCnt;
         }
 
         static void Main(string[] args)

@@ -72,6 +72,7 @@
     <Compile Include="ProtobufReaderState.cs" />
     <Compile Include="Relation.cs" />
     <Compile Include="RelationMemberTypes.cs" />
+    <Compile Include="SubStream.cs" />
     <Compile Include="Way.cs" />
   </ItemGroup>
   <ItemGroup>
