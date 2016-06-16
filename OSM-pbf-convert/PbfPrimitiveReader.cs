@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
@@ -36,7 +37,7 @@ namespace OSM_pbf_convert
             this.reader = new ProtobufReader(dataStream, blob.RawSize);
         }
 
-        public async Task<OsmHeader> ParseHeader()
+        public async Task<OsmHeader> ReadHeader()
         {
             await reader.BeginReadMessageAsync(blob.RawSize);
             var header = new OsmHeader();
@@ -68,7 +69,7 @@ namespace OSM_pbf_convert
             return header;
         }
 
-        public PrimitiveBlock ParseData()
+        public PrimitiveBlock ReadData()
         {
             reader.BeginReadMessage(blob.RawSize);
             var result = new PrimitiveBlock();
@@ -128,12 +129,104 @@ namespace OSM_pbf_convert
         {
             reader.BeginReadMessage();
             var result = new PrimitiveGroup();
+
             while (reader.State == ProtobufReaderState.Field)
             {
                 switch (reader.FieldNumber)
                 {
+                    case 1:
+                        if (result.Nodes == null)
+                        {
+                            result.Nodes = new List<Node>();
+                        }
+                        result.Nodes.Add(ReadNode());
+                        break;
                     case 2:
                         result.DenseNodes = ReadDenseNodes();
+                        break;
+                    case 3:
+                        if (result.Ways == null)
+                        {
+                            result.Ways = new List<Way>();
+                        }
+                        result.Ways.Add(ReadWay());
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+            reader.EndReadMessage();
+            return result;
+        }
+
+        private Way ReadWay()
+        {
+            throw new NotImplementedException();
+        }
+
+        private Node ReadNode()
+        {
+            reader.BeginReadMessage();
+            var result = new Node();
+
+            while (reader.State == ProtobufReaderState.Field)
+            {
+                switch (reader.FieldNumber)
+                {
+                    case 1:
+                        result.Id = reader.ReadSInt64();
+                        break;
+                    case 2:
+                        result.Keys = reader.ReadPackedInt64Array().Cast<uint>().ToList();
+                        break;
+                    case 3:
+                        result.Values = reader.ReadPackedInt64Array().Cast<uint>().ToList();
+                        break;
+                    case 4:
+                        result.Info = ReadInfo();
+                        break;
+                    case 8:
+                        result.Lat = reader.ReadSInt64();
+                        break;
+                    case 9:
+                        result.Lon = reader.ReadSInt64();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+            reader.EndReadMessage();
+            return result;
+        }
+
+        private Info ReadInfo()
+        {
+            reader.BeginReadMessage();
+            var result = new Info();
+
+            while (reader.State == ProtobufReaderState.Field)
+            {
+                switch (reader.FieldNumber)
+                {
+                    case 1:
+                        result.Version = reader.ReadInt32();
+                        break;
+                    case 2:
+                        result.Timestamp = reader.ReadInt32();
+                        break;
+                    case 3:
+                        result.ChangeSet = reader.ReadInt64();
+                        break;
+                    case 4:
+                        result.UserId = reader.ReadInt32();
+                        break;
+                    case 5:
+                        result.UserStringId = reader.ReadInt32();
+                        break;
+                    case 6:
+                        result.Visible = reader.ReadInt64() != 0;
                         break;
                     default:
                         reader.Skip();
@@ -161,6 +254,9 @@ namespace OSM_pbf_convert
                     case 9:
                         result.Longitudes.AddRange(reader.ReadPackedSInt64Array());
                         break;
+                    case 10:
+                        result.KeysValues.AddRange(reader.ReadPackedInt64Array().Select(x=>(int)x));
+                        break;
                     default:
                         reader.Skip();
                         break;
@@ -169,7 +265,7 @@ namespace OSM_pbf_convert
             reader.EndReadMessage();
             return result;
         }
-
+        
         private async Task<BoundBox> ParseBoundBoxAsync()
         {
             await reader.BeginReadMessageAsync();

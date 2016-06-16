@@ -2,7 +2,12 @@
 {
     public class Info
     {
-        public int? Version { get; set; }
+        public Info()
+        {
+            Version = -1;
+        }
+
+        public int Version { get; set; }
         public int? Timestamp { get; set; }
         public long? ChangeSet { get; set; }
         public int? UserId { get; set; }

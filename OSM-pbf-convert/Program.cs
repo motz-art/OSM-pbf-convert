@@ -19,9 +19,12 @@ namespace OSM_pbf_convert
             long nodeCnt = 0;
 
             using (var stream = File.OpenRead(fileName))
+            using (var nodesStream = File.Open(fileName + ".nodes.dat", FileMode.OpenOrCreate))
             {
-                try {
+                try
+                {
                     var parser = new PbfBlobParser(stream);
+                    var writer = new NodesIndexWriter(nodesStream);
                     Task<int> currentPrimitiveProcessingTask = null;
                     while (true)
                     {
@@ -31,12 +34,12 @@ namespace OSM_pbf_convert
                         blobCnt++;
                         maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
                         maxDataSize = Math.Max(maxDataSize, message.RawSize);
-                        if (currentPrimitiveProcessingTask!=null)
+                        if (currentPrimitiveProcessingTask != null)
                         {
                             nodeCnt += await currentPrimitiveProcessingTask;
                             Console.WriteLine($"Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.");
                         }
-                        currentPrimitiveProcessingTask = Task.Run(() => ProcessNodeCount(blobHeader, message));
+                        currentPrimitiveProcessingTask = Task.Run(() => ProcessBlob(blobHeader, message, writer));
                     }
                 }
                 catch (Exception e)
@@ -49,18 +52,27 @@ namespace OSM_pbf_convert
             Console.ReadLine();
         }
 
-        private static async Task<int> ProcessNodeCount(BlobHeader blobHeader, Blob message)
+        private static async Task<int> ProcessBlob(BlobHeader blobHeader, Blob message, NodesIndexWriter nodesIndexWriter)
         {
             var primitiveParser = new PbfPrimitiveReader(blobHeader, message);
             var nodeCnt = 0;
             if (blobHeader.Type == "OSMHeader")
             {
-                var header = await primitiveParser.ParseHeader();
+                var header = await primitiveParser.ReadHeader();
             }
             if (blobHeader.Type == "OSMData")
             {
-                var data = primitiveParser.ParseData();
-                nodeCnt += data?.PrimitiveGroup?.Select(x=>x.DenseNodes?.Ids?.Count ?? 0).Sum() ?? 0;
+                var data = primitiveParser.ReadData();
+                var nodes = PrimitiveDecoder.DecodeDenseNodes(data);
+
+                foreach (var node in nodes)
+                {
+                    var lon = (uint)Math.Round((node.Lon - 180) / 180 * uint.MaxValue);
+                    var lat = (uint)Math.Round((node.Lat - 90) / 90 * uint.MaxValue);
+                    nodesIndexWriter.Write(node.Id, lon, lat);
+                }
+
+                nodeCnt += nodes.Count();
             }
 
             return nodeCnt;

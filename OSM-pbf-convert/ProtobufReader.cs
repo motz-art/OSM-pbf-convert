@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -214,6 +215,16 @@ namespace OSM_pbf_convert
             return Encoding.UTF8.GetString(bytes);
         }
 
+        public int ReadInt32()
+        {
+            return (int)ReadInt64();
+        }
+
+        public async Task<int> ReadInt32Async()
+        {
+            return (int) await ReadInt64Async();
+        }
+
         public ulong ReadVarUInt64()
         {
             ulong result = 0;
@@ -358,7 +369,7 @@ namespace OSM_pbf_convert
             }
         }
 
-        public long[] ReadPackedSInt64Array()
+        public long[] ReadPackedInt64Array()
         {
             var result = new List<long>();
             if (FieldType == FieldTypes.LengthDelimited)
@@ -367,7 +378,7 @@ namespace OSM_pbf_convert
                 var endPosition = Position + (long)size;
                 while (Position < endPosition)
                 {
-                    result.Add(ZigZagDecode(ReadVarUInt64()));
+                    result.Add(ReadVarInt64());
                 }
                 UpdateState();
             }
@@ -378,7 +389,7 @@ namespace OSM_pbf_convert
             return result.ToArray();
         }
 
-        public async Task<long[]> ReadPaskedSInt64ArrayAsync()
+        public async Task<long[]> ReadPackedInt64ArrayAsync()
         {
             var result = new List<long>();
             if (FieldType == FieldTypes.LengthDelimited)
@@ -387,7 +398,7 @@ namespace OSM_pbf_convert
                 var endPosition = Position + (long)size;
                 while (Position < endPosition)
                 {
-                    result.Add(ZigZagDecode(await ReadVarUInt64Async()));
+                    result.Add(await ReadVarInt64Async());
                 }
                 await UpdateStateAsync();
             }
@@ -398,6 +409,17 @@ namespace OSM_pbf_convert
             return result.ToArray();
         }
 
+        public long[] ReadPackedSInt64Array()
+        {
+            var result = ReadPackedInt64Array();
+            return result.Select(x=>ZigZagDecode((ulong)x)).ToArray();
+        }
+
+        public async Task<long[]> ReadPaskedSInt64ArrayAsync()
+        {
+            var result = await ReadPackedInt64ArrayAsync();
+            return result.Select(x => ZigZagDecode((ulong)x)).ToArray();
+        }
         private void UpdateState()
         {
             if (Position == messageStack.Peek())

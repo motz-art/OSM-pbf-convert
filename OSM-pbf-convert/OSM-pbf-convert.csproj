@@ -51,29 +51,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Blob.cs" />
-    <Compile Include="BlobHeader.cs" />
-    <Compile Include="BlobTypes.cs" />
-    <Compile Include="BoundBox.cs" />
-    <Compile Include="ChangeSet.cs" />
-    <Compile Include="DenseInfo.cs" />
-    <Compile Include="DenseNodes.cs" />
+    <Compile Include="NodesIndexWriter.cs" />
+    <Compile Include="OsmNode.cs" />
+    <Compile Include="PbfDataObjects\Blob.cs" />
+    <Compile Include="PbfDataObjects\BlobHeader.cs" />
+    <Compile Include="PbfDataObjects\BlobTypes.cs" />
+    <Compile Include="PbfDataObjects\BoundBox.cs" />
+    <Compile Include="PbfDataObjects\ChangeSet.cs" />
+    <Compile Include="PbfDataObjects\DenseInfo.cs" />
+    <Compile Include="PbfDataObjects\DenseNodes.cs" />
     <Compile Include="FieldTypes.cs" />
-    <Compile Include="Info.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="OsmHeader.cs" />
+    <Compile Include="PbfDataObjects\Info.cs" />
+    <Compile Include="PbfDataObjects\Node.cs" />
+    <Compile Include="PbfDataObjects\OsmHeader.cs" />
     <Compile Include="PbfBlobParser.cs" />
     <Compile Include="PbfPrimitiveReader.cs" />
     <Compile Include="PrimitiveBlock.cs" />
+    <Compile Include="PrimitiveDecoder.cs" />
     <Compile Include="PrimitiveGroup.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtobufReader.cs" />
     <Compile Include="ProtobufReaderState.cs" />
-    <Compile Include="Relation.cs" />
+    <Compile Include="PbfDataObjects\Relation.cs" />
     <Compile Include="RelationMemberTypes.cs" />
     <Compile Include="SubStream.cs" />
-    <Compile Include="Way.cs" />
+    <Compile Include="PbfDataObjects\Way.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
