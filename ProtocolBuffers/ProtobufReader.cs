@@ -11,7 +11,6 @@ namespace ProtocolBuffers
     {
         Stream stream;
         long position = 0;
-        bool isEOF = false;
         Stack<long> messageStack = new Stack<long>();
         private ulong currentKey;
 
