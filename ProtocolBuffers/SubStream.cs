@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace OSM_pbf_convert
+namespace ProtocolBuffers
 {
     internal class SubStream : Stream
     {

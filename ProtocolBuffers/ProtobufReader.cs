@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OSM_pbf_convert
+namespace ProtocolBuffers
 {
     public class ProtobufReader
     {
@@ -222,7 +222,7 @@ namespace OSM_pbf_convert
 
         public async Task<int> ReadInt32Async()
         {
-            return (int) await ReadInt64Async();
+            return (int)await ReadInt64Async();
         }
 
         public ulong ReadVarUInt64()
@@ -412,7 +412,7 @@ namespace OSM_pbf_convert
         public long[] ReadPackedSInt64Array()
         {
             var result = ReadPackedInt64Array();
-            return result.Select(x=>ZigZagDecode((ulong)x)).ToArray();
+            return result.Select(x => ZigZagDecode((ulong)x)).ToArray();
         }
 
         public async Task<long[]> ReadPaskedSInt64ArrayAsync()
@@ -498,7 +498,7 @@ namespace OSM_pbf_convert
 
             while (resultOffset < length)
             {
-                var bytesRead = await stream.ReadAsync(result, resultOffset, 
+                var bytesRead = await stream.ReadAsync(result, resultOffset,
                     (int)length - resultOffset);
                 if (bytesRead == 0)
                 {
@@ -521,4 +521,5 @@ namespace OSM_pbf_convert
             return value;
         }
     }
+
 }

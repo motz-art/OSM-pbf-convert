@@ -1,4 +1,4 @@
-﻿namespace OSM_pbf_convert
+﻿namespace ProtocolBuffers
 {
     public enum FieldTypes
     {
