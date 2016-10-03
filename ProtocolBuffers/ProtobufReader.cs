@@ -419,6 +419,7 @@ namespace ProtocolBuffers
             var result = await ReadPackedInt64ArrayAsync();
             return result.Select(x => ZigZagDecode((ulong)x)).ToArray();
         }
+
         private void UpdateState()
         {
             if (Position == messageStack.Peek())

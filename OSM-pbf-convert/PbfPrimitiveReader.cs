@@ -21,18 +21,19 @@ namespace OSM_pbf_convert
 
             Stream dataStream;
 
-            if (blob.Type == BlobTypes.Raw)
+            if (blob.RawData != null)
             {
-                dataStream = blob.Data;
+                dataStream = blob.RawData;
             }
-            else if (blob.Type == BlobTypes.ZLib)
+            else if (blob.DeflateData != null)
             {
-                blob.Data.Seek(2, SeekOrigin.Begin);
-                dataStream = new DeflateStream(blob.Data, CompressionMode.Decompress);
+                blob.DeflateData.Seek(2, SeekOrigin.Begin);
+                dataStream = new DeflateStream(blob.DeflateData, CompressionMode.Decompress);
             }
             else
             {
-                throw new NotImplementedException($"Compression of type {blob.Type} is not supported.");
+                var type = blob.BZipData != null ? "BZip" : blob.LZMAData != null ? "LZMA" : "Unknown";
+                throw new NotImplementedException($"Blob of type {type} is not supported.");
             }
 
             this.reader = new ProtobufReader(dataStream, blob.RawSize);

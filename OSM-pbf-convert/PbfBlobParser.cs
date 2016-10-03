@@ -1,4 +1,5 @@
-﻿using ProtocolBuffers;
+﻿using ProtobufMapper;
+using ProtocolBuffers;
 using System;
 using System.Globalization;
 using System.IO;
@@ -11,11 +12,34 @@ namespace OSM_pbf_convert
     {
         ProtobufReader reader;
         long fileLength;
+        private readonly Mapper<BlobHeader> blobHeaderMapper;
+        private readonly Mapper<Blob> blobMapper;
 
         public PbfBlobParser(Stream stream)
         {
             fileLength = stream.Length;
             reader = new ProtobufReader(stream, stream.Length);
+
+            var generator = CreateMaps();
+            blobHeaderMapper = generator.CreateMapper<BlobHeader>();
+            blobMapper = generator.CreateMapper<Blob>();
+        }
+
+        static MapGenerator CreateMaps()
+        {
+            var generator = new MapGenerator();
+            generator.Configure<BlobHeader>()
+                .Property(x => x.Type, 1)
+                .Property(x => x.DataSize, 3);
+
+            generator.Configure<Blob>()
+                .Property(x => x.RawData, 1)
+                .Property(x => x.RawSize, 2)
+                .Property(x => x.DeflateData, 3)
+                .Property(x => x.BZipData, 4)
+                .Property(x => x.LZMAData, 5);
+
+            return generator;
         }
 
         private Task<uint> ReadHeaderLength()
@@ -31,10 +55,14 @@ namespace OSM_pbf_convert
                 {
                     return null;
                 }
-                var result = new BlobHeader();
-                result.StartPosition = reader.Position;
-
                 var headerSize = await ReadHeaderLength();
+
+                var startPosition = reader.Position;
+                var result = await blobHeaderMapper.ReadMessageAsync(reader, headerSize);
+                result.StartPosition = startPosition;
+
+                return result;
+
                 await reader.BeginReadMessageAsync(headerSize);
 
                 while (reader.State != ProtobufReaderState.EndOfMessage)
@@ -70,16 +98,18 @@ namespace OSM_pbf_convert
             {
                  Console.WriteLine($"Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
 
+                var result = await blobMapper.ReadMessageAsync(reader, (long)header.DataSize);
+
+                return result;
+
                 await reader.BeginReadMessageAsync((long)header.DataSize);
-                Blob result = new Blob();
                 while (reader.State != ProtobufReaderState.EndOfMessage)
                 {
                     switch (reader.FieldNumber)
                     {
                         case 1:
-                            result.Type = BlobTypes.Raw;
-                            result.Data = await reader.ReadAsStreamAsync();
-                            result.RawSize = result.Data.Length;
+                            result.RawData = await reader.ReadAsStreamAsync();
+                            result.RawSize = result.RawData.Length;
                             break;
                         case 2:
                             result.RawSize = (long)await reader.ReadUInt64Async();
@@ -93,16 +123,13 @@ namespace OSM_pbf_convert
                                 await inflate.CopyToAsync(blobDataStream);
                             }
                             blobDataStream.Position = 0;
-                            result.Type = BlobTypes.Raw;
-                            result.Data = blobDataStream;
+                            result.RawData = blobDataStream;
                             break;
                         case 4:
-                            result.Type = BlobTypes.LZMA;
-                            result.Data = await reader.ReadAsStreamAsync();
+                            result.LZMAData = await reader.ReadAsStreamAsync();
                             break;
                         case 5:
-                            result.Type = BlobTypes.BZip;
-                            result.Data = await reader.ReadAsStreamAsync();
+                            result.BZipData = await reader.ReadAsStreamAsync();
                             break;
                         default:
                             await reader.SkipAsync();

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ProtobufMapper;
+using ProtocolBuffers;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OSM-pbf-convert", "OSM-pbf-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolBuffers", "ProtocolBuffers\ProtocolBuffers.csproj", "{EB136AC5-A5EA-4D1A-8E87-2C0CA345F78F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtobufMapper", "ProtobufMapper\ProtobufMapper.csproj", "{DD1BADF6-9992-4063-B2FC-B9D5E318E153}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{EB136AC5-A5EA-4D1A-8E87-2C0CA345F78F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB136AC5-A5EA-4D1A-8E87-2C0CA345F78F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB136AC5-A5EA-4D1A-8E87-2C0CA345F78F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD1BADF6-9992-4063-B2FC-B9D5E318E153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD1BADF6-9992-4063-B2FC-B9D5E318E153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD1BADF6-9992-4063-B2FC-B9D5E318E153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD1BADF6-9992-4063-B2FC-B9D5E318E153}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
