@@ -5,30 +5,60 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using ProtobufMapper;
 
 namespace OSM_pbf_convert
 {
     public class PbfPrimitiveReader
     {
-        private BlobHeader blobHeader;
-        private Blob blob;
-        private ProtobufReader reader;
+        private readonly long length;
+        private readonly ProtobufReader reader;
 
-        public PbfPrimitiveReader(BlobHeader blobHeader, Blob blob)
+        public PbfPrimitiveReader(Stream stream, long length)
         {
-            this.blobHeader = blobHeader;
-            this.blob = blob;
+            this.length = length;
+            this.reader = new ProtobufReader(stream, length);
+        }
 
+        public static PbfPrimitiveReader Create(Blob blob, bool preload = true)
+        {
             Stream dataStream;
 
             if (blob.RawData != null)
             {
                 dataStream = blob.RawData;
+
+                if (preload)
+                {
+                    var data = new byte[blob.RawSize];
+                    var len = dataStream.Read(data, 0, data.Length);
+                    if (len != data.Length)
+                    {
+                        throw new InvalidOperationException($"Can't read {data.Length} bytes of data!");
+                    }
+
+                    dataStream = new MemoryStream(data, 0, len);
+                }
             }
             else if (blob.DeflateData != null)
             {
-                blob.DeflateData.Seek(2, SeekOrigin.Begin);
-                dataStream = new DeflateStream(blob.DeflateData, CompressionMode.Decompress);
+                dataStream = blob.DeflateData;
+
+                if (preload)
+                {
+                    var data = new byte[blob.DeflateData.Length];
+                    var len = dataStream.Read(data, 0, data.Length);
+                    if (len != data.Length)
+                    {
+                        throw new InvalidOperationException($"Can't read {data.Length} bytes of data!");
+                    }
+
+                    dataStream = new MemoryStream(data, 0, len);
+                }
+
+                dataStream.Seek(2, SeekOrigin.Begin);
+
+                dataStream = new DeflateStream(dataStream, CompressionMode.Decompress);
             }
             else
             {
@@ -36,12 +66,12 @@ namespace OSM_pbf_convert
                 throw new NotImplementedException($"Blob of type {type} is not supported.");
             }
 
-            this.reader = new ProtobufReader(dataStream, blob.RawSize);
+            return new PbfPrimitiveReader(dataStream, blob.RawSize);
         }
 
         public async Task<OsmHeader> ReadHeader()
         {
-            await reader.BeginReadMessageAsync(blob.RawSize);
+            await reader.BeginReadMessageAsync(length);
             var header = new OsmHeader();
             while (reader.State == ProtobufReaderState.Field)
             {
@@ -73,7 +103,7 @@ namespace OSM_pbf_convert
 
         public PrimitiveBlock ReadData()
         {
-            reader.BeginReadMessage(blob.RawSize);
+            reader.BeginReadMessage(length);
             var result = new PrimitiveBlock();
             result.PrimitiveGroup = new List<PrimitiveGroup>();
             while (reader.State == ProtobufReaderState.Field)
@@ -162,9 +192,19 @@ namespace OSM_pbf_convert
             return result;
         }
 
+
+
         private Way ReadWay()
         {
-            throw new NotImplementedException();
+            var generator = new MapGenerator();
+            generator.Configure<Way>()
+                .Property(x => x.Id, 1)
+                .Property(x => x.Keys, 2)
+                .Property(x => x.Values, 3)
+                .Property(x => x.Refs, 8);
+
+            var mapper = generator.CreateMapper<Way>();
+            return mapper.ReadMessage(reader);
         }
 
         private Node ReadNode()

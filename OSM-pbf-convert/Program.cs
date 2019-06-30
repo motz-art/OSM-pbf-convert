@@ -1,18 +1,17 @@
-﻿using ProtobufMapper;
-using ProtocolBuffers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
     class Program
     {
+        private static List<BlobIdsInfo> info = new List<BlobIdsInfo>();
+
         static async Task Process(string fileName)
         {
             ulong maxBlobSize = 0;
@@ -27,7 +26,7 @@ namespace OSM_pbf_convert
                 {
                     var parser = new PbfBlobParser(stream);
                     var writer = new NodesIndexWriter(nodesStream);
-                    Task<int> currentPrimitiveProcessingTask = null;
+                    var pool = new Semaphore(12,12);
                     while (true)
                     {
                         var blobHeader = await parser.ReadBlobHeader();
@@ -36,12 +35,30 @@ namespace OSM_pbf_convert
                         blobCnt++;
                         maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
                         maxDataSize = Math.Max(maxDataSize, message.RawSize);
-                        if (currentPrimitiveProcessingTask != null)
+
+                        var headerType = blobHeader.Type;
+                        var reader = PbfPrimitiveReader.Create(message);
+                        
+                        pool.WaitOne();
+                        
+                        Console.Write($" Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.\r");
+
+                        Task.Run(async () =>
                         {
-                            nodeCnt += await currentPrimitiveProcessingTask;
-                            Console.WriteLine($"Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.");
-                        }
-                        currentPrimitiveProcessingTask = Task.Run(() => ProcessBlob(blobHeader, message, writer));
+                            try
+                            {
+                                var cnt = await ProcessBlob(writer, headerType, reader);
+                                Interlocked.Add(ref nodeCnt, (long) cnt);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
+                            finally
+                            {
+                                pool.Release(1);
+                            }
+                        });
                     }
                 }
                 catch (Exception e)
@@ -54,28 +71,39 @@ namespace OSM_pbf_convert
             Console.ReadLine();
         }
 
-        private static async Task<int> ProcessBlob(BlobHeader blobHeader, Blob message, NodesIndexWriter nodesIndexWriter)
+        private static async Task<int> ProcessBlob(NodesIndexWriter nodesIndexWriter, string blobHeaderType, PbfPrimitiveReader pbfPrimitiveReader)
         {
-            var primitiveParser = new PbfPrimitiveReader(blobHeader, message);
             var nodeCnt = 0;
-            if (blobHeader.Type == "OSMHeader")
+            var minId = long.MaxValue;
+            var maxId = long.MinValue;
+            if (blobHeaderType == "OSMHeader")
             {
-                var header = await primitiveParser.ReadHeader();
+                var header = await pbfPrimitiveReader.ReadHeader();
             }
-            if (blobHeader.Type == "OSMData")
+            if (blobHeaderType == "OSMData")
             {
-                var data = primitiveParser.ReadData();
+                var data = pbfPrimitiveReader.ReadData();
                 var nodes = PrimitiveDecoder.DecodeDenseNodes(data);
 
                 foreach (var node in nodes)
                 {
+                    minId = Math.Min(minId, node.Id);
+                    maxId = Math.Max(maxId, node.Id);
+                    nodeCnt++;
+
                     var lon = (uint)Math.Round((node.Lon - 180) / 180 * uint.MaxValue);
                     var lat = (uint)Math.Round((node.Lat - 90) / 90 * uint.MaxValue);
                     nodesIndexWriter.Write(node.Id, lon, lat);
                 }
 
-                nodeCnt += nodes.Count();
             }
+
+            info.Add(new BlobIdsInfo
+            {
+                MinNodeId = minId,
+                MaxNodeId = maxId,
+                NodesCount = nodeCnt
+            });
 
             return nodeCnt;
         }
@@ -89,5 +117,13 @@ namespace OSM_pbf_convert
             }
             Task.Run(() => Process(args[0]).Wait()).Wait();
         }
+    }
+
+    internal class BlobIdsInfo
+    {
+        public int Id { get; set; }
+        public long MinNodeId { get; set; }
+        public long MaxNodeId { get; set; }
+        public int NodesCount { get; set; }
     }
 }

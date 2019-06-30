@@ -62,27 +62,6 @@ namespace OSM_pbf_convert
                 result.StartPosition = startPosition;
 
                 return result;
-
-                await reader.BeginReadMessageAsync(headerSize);
-
-                while (reader.State != ProtobufReaderState.EndOfMessage)
-                {
-                    switch (reader.FieldNumber)
-                    {
-                        case 1:
-                            result.Type = await reader.ReadStringAsync();
-                            break;
-                        case 3:
-                            result.DataSize = await reader.ReadUInt64Async();
-                            break;
-                        default:
-                            await reader.SkipAsync();
-                            break;
-                    }
-                }
-                await reader.EndReadMessageAsync();
-
-                return result;
             }
             catch (Exception e)
             {
@@ -96,49 +75,11 @@ namespace OSM_pbf_convert
             var startPosition = reader.Position;
             try
             {
-                 Console.WriteLine($"Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
+                 Console.Write($" Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
 
                 var result = await blobMapper.ReadMessageAsync(reader, (long)header.DataSize);
 
                 return result;
-
-                await reader.BeginReadMessageAsync((long)header.DataSize);
-                while (reader.State != ProtobufReaderState.EndOfMessage)
-                {
-                    switch (reader.FieldNumber)
-                    {
-                        case 1:
-                            result.RawData = await reader.ReadAsStreamAsync();
-                            result.RawSize = result.RawData.Length;
-                            break;
-                        case 2:
-                            result.RawSize = (long)await reader.ReadUInt64Async();
-                            break;
-                        case 3:
-                            var blobDataStream = new MemoryStream();
-                            var stream = await reader.ReadAsStreamAsync();
-                            stream.Seek(2, SeekOrigin.Begin);
-                            using(var inflate = new DeflateStream(stream, CompressionMode.Decompress))
-                            {
-                                await inflate.CopyToAsync(blobDataStream);
-                            }
-                            blobDataStream.Position = 0;
-                            result.RawData = blobDataStream;
-                            break;
-                        case 4:
-                            result.LZMAData = await reader.ReadAsStreamAsync();
-                            break;
-                        case 5:
-                            result.BZipData = await reader.ReadAsStreamAsync();
-                            break;
-                        default:
-                            await reader.SkipAsync();
-                            break;
-                    }
-                }
-                await reader.EndReadMessageAsync();
-                return result;
-
             }
             catch (Exception e)
             {
