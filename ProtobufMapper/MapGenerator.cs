@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Linq.Expressions;
@@ -28,7 +27,7 @@ namespace ProtobufMapper
             return new Mapper<T>(readers);
         }
 
-        private Func<ProtobufReader, T, Task> CreatePropertyReader<T>(PropertyInfo propertyInfo, PropertyConfiguration propertyConfiguration)
+        private PropertyReader<T> CreatePropertyReader<T>(PropertyInfo propertyInfo, PropertyConfiguration propertyConfiguration)
         {
             var callRead = CreateReadCall(propertyInfo.PropertyType, propertyConfiguration);
             var readerParam = GetReaderParam(callRead);
@@ -44,52 +43,76 @@ namespace ProtobufMapper
             var continueWithMethod = taskType.GetMethod("ContinueWith", new[] { assignActionType });
 
             var resultExpression = Expression.Lambda<Func<ProtobufReader, T, Task>>(
-                    Expression.Call(callRead, continueWithMethod, assign), readerParam, messageParam);
+                    Expression.Call(callRead.Body, continueWithMethod, assign), readerParam, messageParam);
 
-            return resultExpression.Compile();
+            var reader = resultExpression.Compile();
+
+            return new PropertyReader<T>
+            {
+                PropertyName = propertyInfo.Name,
+                Read = reader
+            };
         }
 
-        private ParameterExpression GetReaderParam(MethodCallExpression callRead)
+        private ParameterExpression GetReaderParam(LambdaExpression lambdaExpression)
         {
-            return (ParameterExpression)callRead.Object;
+            return lambdaExpression.Parameters.Single();
         }
 
-        private MethodCallExpression CreateReadCall(Type propertyType, PropertyConfiguration propertyConfiguration)
+        private LambdaExpression CreateReadCall(Type propertyType, PropertyConfiguration propertyConfiguration)
         {
             if (propertyType == typeof(int))
             {
                 Expression<Func<ProtobufReader, Task<int>>> lambda = x => x.ReadInt32Async();
-                return (MethodCallExpression)lambda.Body;
+                return lambda;
             }
             if (propertyType == typeof(long))
             {
                 Expression<Func<ProtobufReader, Task<long>>> lambda = x => x.ReadInt64Async();
-                return (MethodCallExpression)lambda.Body;
+                return lambda;
             }
             if (propertyType == typeof(ulong))
             {
                 Expression<Func<ProtobufReader, Task<ulong>>> lambda = x => x.ReadUInt64Async();
-                return (MethodCallExpression)lambda.Body;
+                return lambda;
             }
             if (propertyType == typeof(string))
             {
                 Expression<Func<ProtobufReader, Task<string>>> lambda = x => x.ReadStringAsync();
-                return (MethodCallExpression)lambda.Body;
+                return lambda;
             }
             if (propertyType == typeof(Stream))
             {
                 Expression<Func<ProtobufReader, Task<Stream>>> lambda = x => x.ReadAsStreamAsync();
-                return (MethodCallExpression)lambda.Body;
+                return lambda;
+            }
+
+            if (propertyType == typeof(long[]))
+            {
+                Expression<Func<ProtobufReader, Task<long[]>>> lambda = x => x.ReadPackedSInt64ArrayAsync();
+                return lambda;
+            }
+
+            if (propertyType == typeof(List<long>))
+            {
+                Expression<Func<ProtobufReader, Task<List<long>>>> lambda = x => ListFromArray(x.ReadPackedSInt64ArrayAsync());
+
+                return lambda;
             }
             throw new NotSupportedException($"Properties of type {propertyType} are not supported.");
+        }
+
+        private static Task<List<T>> ListFromArray<T>(Task<T[]> readTask)
+        {
+            return readTask.ContinueWith(x => new List<T>(x.Result));
         }
     }
 
     public class Mapper<T> where T : new()
     {
-        Dictionary<ulong, Func<ProtobufReader, T, Task>> propertyReaders;
+        Dictionary<ulong, PropertyReader<T>> propertyReaders;
 
-        internal Mapper(Dictionary<ulong, Func<ProtobufReader, T, Task>> propertyReaders)
+        internal Mapper(Dictionary<ulong, PropertyReader<T>> propertyReaders)
         {
             this.propertyReaders = propertyReaders;
         }
@@ -123,12 +146,21 @@ namespace ProtobufMapper
 
         private async Task ReadMessagePropertiesAsync(ProtobufReader reader, T message)
         {
+            var num = 0;
             while (reader.State != ProtobufReaderState.EndOfMessage)
             {
-                Func<ProtobufReader, T, Task> propertyReader;
+                PropertyReader<T> propertyReader;
                 if (propertyReaders.TryGetValue(reader.FieldNumber, out propertyReader))
                 {
-                    await propertyReader(reader, message);
+                    try
+                    {
+                        num++;
+                        await propertyReader.Read(reader, message);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new InvalidOperationException("", e);
+                    }
                 }
                 else
                 {
