@@ -13,11 +13,11 @@ namespace OSM_pbf_convert
         {
             this.nodesStream = nodesStream;
             buffer = new byte[64 * 1024];
-
         }
 
         public void Write(long id, uint lon, uint lat)
         {
+            return;
             var position = id * 8;
             var offset = position - writePosition;
             if (offset < 0 || offset >= buffer.Length)
