@@ -84,7 +84,7 @@ namespace ProtocolBuffers
             {
                 var resultStream = new SubStream(stream, stream.Position, length);
                 stream.Position = stream.Position + length;
-                Position = Position + length;
+                Position += length;
                 UpdateState();
                 return resultStream;
             }
@@ -104,7 +104,7 @@ namespace ProtocolBuffers
             {
                 var resultStream = new SubStream(stream, stream.Position, length);
                 stream.Position = stream.Position + length;
-                Position = Position + length;
+                Position += length;
                 await UpdateStateAsync();
                 return resultStream;
             }
