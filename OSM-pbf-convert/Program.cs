@@ -26,7 +26,7 @@ namespace OSM_pbf_convert
                 {
                     var parser = new PbfBlobParser(stream);
                     var writer = new NodesIndexWriter(nodesStream);
-                    var pool = new Semaphore(12,12);
+                    var pool = new Semaphore(Environment.ProcessorCount + 2, Environment.ProcessorCount + 2);
                     while (true)
                     {
                         var blobHeader = await parser.ReadBlobHeader();

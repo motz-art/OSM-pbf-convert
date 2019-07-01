@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OSM-pbf-convert": {
+      "commandName": "Project",
+      "commandLineArgs": "c:\\temp\\germany-latest.osm.pbf"
+    }
+  }
+}
