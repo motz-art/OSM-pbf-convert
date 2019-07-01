@@ -9,9 +9,8 @@ namespace ProtocolBuffers
 {
     public class ProtobufReader
     {
-        Stream stream;
-        long position = 0;
-        Stack<long> messageStack = new Stack<long>();
+        private readonly Stream stream;
+        private readonly Stack<long> messageStack = new Stack<long>();
         private ulong currentKey;
 
         public ProtobufReader(Stream stream, long length)
@@ -20,29 +19,11 @@ namespace ProtocolBuffers
             messageStack.Push(length);
         }
 
-        public long Position
-        {
-            get
-            {
-                return position;
-            }
-        }
+        public long Position { get; private set; } = 0;
 
-        public FieldTypes FieldType
-        {
-            get
-            {
-                return (FieldTypes)(currentKey & 0x07);
-            }
-        }
+        public FieldTypes FieldType => (FieldTypes)(currentKey & 0x07);
 
-        public ulong FieldNumber
-        {
-            get
-            {
-                return currentKey >> 3;
-            }
-        }
+        public ulong FieldNumber => currentKey >> 3;
 
         public ProtobufReaderState State { get; private set; }
 
@@ -64,7 +45,7 @@ namespace ProtocolBuffers
                     ReadBytes(8);
                     break;
                 default:
-                    throw new NotImplementedException(string.Format("Can't skip #{0} of type {1}.", FieldNumber, FieldType));
+                    throw new NotSupportedException($"Can't skip field number {FieldNumber} of type {FieldType}.");
             }
             UpdateState();
         }
@@ -87,7 +68,7 @@ namespace ProtocolBuffers
                     await ReadBytesAsync(8);
                     break;
                 default:
-                    throw new NotImplementedException(string.Format("Can't skip #{0} of type {1}.", FieldNumber, FieldType));
+                    throw new NotSupportedException($"Can't skip field number {FieldNumber} of type {FieldType}.");
             }
             await UpdateStateAsync();
         }
@@ -103,7 +84,7 @@ namespace ProtocolBuffers
             {
                 var resultStream = new SubStream(stream, stream.Position, length);
                 stream.Position = stream.Position + length;
-                position = position + length;
+                Position = Position + length;
                 UpdateState();
                 return resultStream;
             }
@@ -123,7 +104,7 @@ namespace ProtocolBuffers
             {
                 var resultStream = new SubStream(stream, stream.Position, length);
                 stream.Position = stream.Position + length;
-                position = position + length;
+                Position = Position + length;
                 await UpdateStateAsync();
                 return resultStream;
             }
@@ -135,14 +116,14 @@ namespace ProtocolBuffers
         public long ReadSInt64()
         {
             var tmp = ReadUInt64();
-            long value = ZigZagDecode(tmp);
+            long value = EncodeHelpers.DecodeZigZag(tmp);
             return value;
         }
 
         public async Task<long> ReadSInt64Async()
         {
             var tmp = await ReadUInt64Async();
-            long value = ZigZagDecode(tmp);
+            long value = EncodeHelpers.DecodeZigZag(tmp);
             return value;
         }
 
@@ -159,13 +140,13 @@ namespace ProtocolBuffers
         public uint ReadInt32BigEndian()
         {
             var bytes = ReadBytes(4);
-            return (((uint)bytes[0]) << 24) + (((uint)bytes[1]) << 16) + (((uint)bytes[2]) << 24) + ((uint)bytes[3]);
+            return EncodeHelpers.DecodeInt32BigEndian(bytes);
         }
 
         public async Task<uint> ReadInt32BigEndianAsync()
         {
             var bytes = await ReadBytesAsync(4);
-            return (((uint)bytes[0]) << 24) + (((uint)bytes[1]) << 16) + (((uint)bytes[2]) << 24) + ((uint)bytes[3]);
+            return EncodeHelpers.DecodeInt32BigEndian(bytes);
         }
 
         public ulong ReadUInt64()
@@ -320,7 +301,7 @@ namespace ProtocolBuffers
             var endOfMessage = Position + length;
             if (endOfMessage > messageStack.Peek())
             {
-                throw new ArgumentException("Length of message is out of parrent message bound.");
+                throw new ArgumentException("Length of message is out of parent message bound.");
             }
             messageStack.Push(endOfMessage);
             await UpdateStateAsync();
@@ -388,6 +369,26 @@ namespace ProtocolBuffers
             return result.ToArray();
         }
 
+        public async Task<int[]> ReadPackedInt32ArrayAsync()
+        {
+            var result = new List<int>();
+            if (FieldType == FieldTypes.LengthDelimited)
+            {
+                var size = await ReadVarUInt64Async();
+                var endPosition = Position + (long)size;
+                while (Position < endPosition)
+                {
+                    result.Add((int)await ReadVarInt64Async());
+                }
+                await UpdateStateAsync();
+            }
+            else
+            {
+                result.Add((int)await ReadSInt64Async());
+            }
+            return result.ToArray();
+        }
+
         public async Task<long[]> ReadPackedInt64ArrayAsync()
         {
             var result = new List<long>();
@@ -411,13 +412,13 @@ namespace ProtocolBuffers
         public long[] ReadPackedSInt64Array()
         {
             var result = ReadPackedInt64Array();
-            return result.Select(x => ZigZagDecode((ulong)x)).ToArray();
+            return result.Select(x => EncodeHelpers.DecodeZigZag((ulong)x)).ToArray();
         }
 
-        public async Task<long[]> ReadPaskedSInt64ArrayAsync()
+        public async Task<long[]> ReadPackedSInt64ArrayAsync()
         {
             var result = await ReadPackedInt64ArrayAsync();
-            return result.Select(x => ZigZagDecode((ulong)x)).ToArray();
+            return result.Select(x => EncodeHelpers.DecodeZigZag((ulong)x)).ToArray();
         }
 
         private void UpdateState()
@@ -481,7 +482,7 @@ namespace ProtocolBuffers
                 {
                     throw new InvalidOperationException("Unexpected end of file.");
                 }
-                position += bytesRead;
+                Position += bytesRead;
                 resultOffset += bytesRead;
             }
             return result;
@@ -504,21 +505,10 @@ namespace ProtocolBuffers
                 {
                     throw new InvalidOperationException("Unexpected end of file.");
                 }
-                position += bytesRead;
+                Position += bytesRead;
                 resultOffset += bytesRead;
             }
             return result;
-        }
-
-        private static long ZigZagDecode(ulong tmp)
-        {
-            var value = (long)(tmp >> 1);
-            if ((tmp & 0x01) != 0)
-            {
-                value = -1 ^ value;
-            }
-
-            return value;
         }
     }
 

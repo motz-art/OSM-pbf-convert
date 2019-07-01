@@ -4,7 +4,6 @@
     {
         None = 0,
         Field,
-        EndOfMessage,
-        EndOfFile
+        EndOfMessage
     }
 }

@@ -5,10 +5,10 @@ namespace ProtocolBuffers
 {
     internal class SubStream : Stream
     {
-        private long length;
-        private long startPosition;
-        private long position = 0;
-        private Stream stream;
+        private readonly long length;
+        private readonly long startPosition;
+        private long position;
+        private readonly Stream stream;
 
         public SubStream(Stream stream, long startPosition, long length)
         {
@@ -17,49 +17,18 @@ namespace ProtocolBuffers
             this.length = length;
         }
 
-        public override bool CanRead
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool CanRead => true;
+        
+        public override bool CanSeek => true;
+        
+        public override bool CanWrite => false;
 
-        public override bool CanSeek
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public override bool CanWrite
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override long Length
-        {
-            get
-            {
-                return length;
-            }
-        }
+        public override long Length => length;
 
         public override long Position
         {
-            get
-            {
-                return position;
-            }
-
-            set
-            {
-                position = value;
-            }
+            get => position;
+            set => position = value;
         }
 
         public override void Flush()
@@ -100,7 +69,7 @@ namespace ProtocolBuffers
 
             if (newPosition < 0 || newPosition > length)
             {
-                throw new ArgumentOutOfRangeException("New position is out of range.");
+                throw new InvalidOperationException("New position is out of range.");
             }
 
             position = newPosition;
