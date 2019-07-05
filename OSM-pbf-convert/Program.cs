@@ -3,127 +3,101 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
-    class Program
+    class MapBuilder
     {
-        private static List<BlobIdsInfo> info = new List<BlobIdsInfo>();
-
-        static async Task Process(string fileName)
+        public static async Task Process(string fileName, string indexFileName)
         {
-            ulong maxBlobSize = 0;
-            long maxDataSize = 0;
-            var blobCnt = 0;
-            long nodeCnt = 0;
+            var index = BlobIdsInfo.ReadIdsIndex(indexFileName).ToList();
+            
+            Console.WriteLine($"Index size: {index.Count}");
 
             using (var stream = File.OpenRead(fileName))
-            using (var nodesStream = File.Open(fileName + ".nodes.dat", FileMode.OpenOrCreate))
             {
-                try
+                foreach (var info in index.Where(x => x.WaysCount > 0).Take(5))
                 {
+                    stream.Position = 0;
                     var parser = new PbfBlobParser(stream);
-                    var writer = new NodesIndexWriter(nodesStream);
-                    var pool = new Semaphore(Environment.ProcessorCount + 2, Environment.ProcessorCount + 2);
-                    while (true)
+                    parser.SkipBlob((ulong) (info.StartPosition - 4));
+                    var header = await parser.ReadBlobHeader();
+                    var blob = await parser.ReadBlobAsync(header);
+                    var primitiveReader = PbfPrimitiveReader.Create(blob);
+                    var data = primitiveReader.ReadData();
+
+                    var ways = PrimitiveDecoder.DecodeWays(data).ToList();
+                    
+                    Console.WriteLine();
+
+                    foreach (var way in ways)
                     {
-                        var blobHeader = await parser.ReadBlobHeader();
-                        if (blobHeader == null) break;
-                        var message = await parser.ReadBlobAsync(blobHeader);
-                        blobCnt++;
-                        maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
-                        maxDataSize = Math.Max(maxDataSize, message.RawSize);
+                        var nodeIds = way.NodeIds.Distinct().OrderBy(x => x).ToList();
 
-                        var headerType = blobHeader.Type;
-                        var reader = PbfPrimitiveReader.Create(message);
-                        
-                        pool.WaitOne();
-                        
-                        Console.Write($" Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.\r");
+                        var blobsToRead = FindBlobIdsToRead(index, nodeIds);
 
-                        Task.Run(async () =>
-                        {
-                            try
-                            {
-                                var cnt = await ProcessBlob(writer, headerType, reader);
-                                Interlocked.Add(ref nodeCnt, (long) cnt);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
-                            finally
-                            {
-                                pool.Release(1);
-                            }
-                        });
+                        Console.WriteLine($"Id: {way.Id}, Cnt: {blobsToRead.Count}. {string.Join(", ",blobsToRead)}");
                     }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Error processing file. After reading {stream.Position} of {stream.Length} bytes.");
-                    Console.WriteLine(e);
+
                 }
             }
-            Console.WriteLine($"Statistic: max blob {maxBlobSize}, data: {maxDataSize}, total cnt: {blobCnt}, nodes: {nodeCnt}");
-            Console.ReadLine();
+
+            Console.WriteLine("Done! Press any key....");
+            Console.ReadKey();
         }
 
-        private static async Task<int> ProcessBlob(NodesIndexWriter nodesIndexWriter, string blobHeaderType, PbfPrimitiveReader pbfPrimitiveReader)
+        private static List<BlobIdsInfo> FindBlobIdsToRead(List<BlobIdsInfo> index, List<long> nodeIds)
         {
-            var nodeCnt = 0;
-            var minId = long.MaxValue;
-            var maxId = long.MinValue;
-            if (blobHeaderType == "OSMHeader")
-            {
-                var header = await pbfPrimitiveReader.ReadHeader();
-            }
-            if (blobHeaderType == "OSMData")
-            {
-                var data = pbfPrimitiveReader.ReadData();
-                var nodes = PrimitiveDecoder.DecodeDenseNodes(data);
+            var blobsToRead = new List<BlobIdsInfo>();
+            if (nodeIds.Count == 0) return blobsToRead;
 
-                foreach (var node in nodes)
+            var nodeIndex = 0;
+            var lastId = nodeIds[nodeIndex];
+
+            for (int i = 0; i < index.Count; i++)
+            {
+                var info = index[i];
+                if (info.NodesCount <= 0) continue;
+
+                while (info.MaxNodeId < lastId && nodeIndex > 0)
                 {
-                    minId = Math.Min(minId, node.Id);
-                    maxId = Math.Max(maxId, node.Id);
-                    nodeCnt++;
-
-                    var lon = (uint)Math.Round((node.Lon - 180) / 180 * uint.MaxValue);
-                    var lat = (uint)Math.Round((node.Lat - 90) / 90 * uint.MaxValue);
-                    nodesIndexWriter.Write(node.Id, lon, lat);
+                    nodeIndex--;
+                    lastId = nodeIds[nodeIndex];
                 }
 
+                while (info.MinNodeId > lastId && nodeIndex < nodeIds.Count - 1)
+                {
+                    nodeIndex++;
+                    lastId = nodeIds[nodeIndex];
+                }
+
+                if (lastId <= info.MaxNodeId && lastId >= info.MinNodeId)
+                {
+                    blobsToRead.Add(info);
+                }
             }
 
-            info.Add(new BlobIdsInfo
-            {
-                MinNodeId = minId,
-                MaxNodeId = maxId,
-                NodesCount = nodeCnt
-            });
-
-            return nodeCnt;
-        }
-
-        static void Main(string[] args)
-        {
-            if (args.Length != 1)
-            {
-                Console.WriteLine("Pbf file name is not specified.");
-                return;
-            }
-            Task.Run(() => Process(args[0]).Wait()).Wait();
+            return blobsToRead;
         }
     }
 
-    internal class BlobIdsInfo
+    class Program
     {
-        public int Id { get; set; }
-        public long MinNodeId { get; set; }
-        public long MaxNodeId { get; set; }
-        public int NodesCount { get; set; }
+        static void Main(string[] args)
+        {
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Pbf action and file name is not specified.");
+                return;
+            }
+            if (args[0] == "blob-index")
+                Task.Run(() => BlobIdsIndexer.Process(args[0])).Wait();
+            
+            if (args[1] == "tst")
+                Task.Run(() => MapBuilder.Process(args[0], args[0] + ".nodes.dat")).Wait();
+        }
     }
 }

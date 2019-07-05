@@ -13,6 +13,7 @@ namespace OSM_pbf_convert
     {
         private readonly long length;
         private readonly ProtobufReader reader;
+        private static Mapper<Way> wayMapper;
 
         public PbfPrimitiveReader(Stream stream, long length)
         {
@@ -183,6 +184,13 @@ namespace OSM_pbf_convert
                         }
                         result.Ways.Add(ReadWay());
                         break;
+                    case 4:
+                        if (result.Relations == null)
+                        {
+                            result.Relations = new List<Relation>();
+                        }
+                        result.Relations.Add(ReadRelation());
+                        break;
                     default:
                         reader.Skip();
                         break;
@@ -192,19 +200,36 @@ namespace OSM_pbf_convert
             return result;
         }
 
-
-
         private Way ReadWay()
         {
-            var generator = new MapGenerator();
-            generator.Configure<Way>()
-                .Property(x => x.Id, 1)
-                .Property(x => x.Keys, 2)
-                .Property(x => x.Values, 3)
-                .Property(x => x.Refs, 8);
-
-            var mapper = generator.CreateMapper<Way>();
-            return mapper.ReadMessage(reader);
+            reader.BeginReadMessage();
+            var result = new Way();
+            while (reader.State == ProtobufReaderState.Field)
+            {
+                switch (reader.FieldNumber)
+                {
+                        case 1:
+                            result.Id = reader.ReadSInt64();
+                            break;
+                        case 2:
+                            result.Keys = reader.ReadPackedInt64Array();
+                            break;
+                        case 3:
+                            result.Values = reader.ReadPackedInt64Array();
+                            break;
+                        case 4:
+                            result.Info = ReadInfo();
+                            break;
+                        case 8:
+                            result.Refs = reader.ReadPackedSInt64Array();
+                            break;
+                        default:
+                            reader.Skip();
+                            break;
+                }
+            }
+            reader.EndReadMessage();
+            return result;
         }
 
         private Node ReadNode()
@@ -303,6 +328,41 @@ namespace OSM_pbf_convert
                         reader.Skip();
                         break;
                 }
+            }
+            reader.EndReadMessage();
+            return result;
+        }
+
+        private Relation ReadRelation()
+        {
+            reader.BeginReadMessage();
+            var result = new Relation();
+            while (reader.State == ProtobufReaderState.Field)
+            {
+                switch (reader.FieldNumber)
+                {
+                        case 1:
+                            result.Id = reader.ReadInt64();
+                            break;
+                        case 2:
+                            result.Keys.AddRange(reader.ReadPackedInt64Array());
+                            break;
+                        case 3:
+                            result.Values.AddRange(reader.ReadPackedInt64Array());
+                            break;
+                        case 4:
+                            result.Info = ReadInfo();
+                            break;
+                        case 8:
+                            result.Roles.AddRange(reader.ReadPackedInt64Array());
+                            break;
+                        case 9:
+                            result.MemberIds.AddRange(reader.ReadPackedInt64Array());
+                            break;
+                        case 10:
+                            result.MemberType.AddRange(reader.ReadPackedInt64Array().Select(x => (RelationMemberTypes)x));
+                            break;
+                }                
             }
             reader.EndReadMessage();
             return result;

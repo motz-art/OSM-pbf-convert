@@ -3,15 +3,14 @@ using ProtocolBuffers;
 using System;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
     public class PbfBlobParser
     {
-        ProtobufReader reader;
-        long fileLength;
+        readonly ProtobufReader reader;
+        readonly long fileLength;
         private readonly Mapper<BlobHeader> blobHeaderMapper;
         private readonly Mapper<Blob> blobMapper;
 
@@ -85,6 +84,13 @@ namespace OSM_pbf_convert
             {
                 throw new InvalidOperationException("Error reading Blob.", e);
             }
+        }
+
+        public void SkipBlob(ulong headerDataSize)
+        {
+            Console.Write($" Offset: {reader.Position.ToString("#,##0", CultureInfo.CurrentUICulture)}, Skipping {headerDataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
+
+            reader.SkipLength((long)headerDataSize);
         }
     }
 }

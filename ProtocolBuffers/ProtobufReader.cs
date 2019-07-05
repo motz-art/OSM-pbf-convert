@@ -510,6 +510,19 @@ namespace ProtocolBuffers
             }
             return result;
         }
+
+        public void SkipLength(long offset)
+        {
+            if (stream.CanSeek)
+            {
+                stream.Position += offset;
+                Position += offset;
+            }
+            else
+            {
+                throw new NotSupportedException("Stream can't seek.");
+            }
+        }
     }
 
 }
