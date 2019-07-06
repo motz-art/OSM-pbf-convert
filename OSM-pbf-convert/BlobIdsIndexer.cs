@@ -1,97 +1,85 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using OSM_pbf_convert;
 
-internal static class BlobIdsIndexer
+internal class BlobIdsIndexer : IDisposable
 {
     private static readonly List<BlobIdsInfo> infos = new List<BlobIdsInfo>();
+    private readonly Stream stream;
 
-    public static async Task Process(string fileName)
+    public BlobIdsIndexer(string fileName)
     {
-        ulong maxBlobSize = 0;
-        long maxDataSize = 0;
-        var blobCnt = 0;
-        long nodeCnt = 0;
+        stream = File.OpenRead(fileName);
+    }
+
+    public void Dispose()
+    {
+        stream?.Dispose();
+    }
+
+    public async Task Process(string fileName)
+    {
         var poolCount = Environment.ProcessorCount + 2;
         var pool = new Semaphore(poolCount, poolCount);
 
-        using (var stream = File.OpenRead(fileName))
+        try
         {
-            try
+            var watch = Stopwatch.StartNew();
+
+            var parser = new PbfBlobParser(stream);
+            while (true)
             {
-                var parser = new PbfBlobParser(stream);
-                // parser.SkipBlob(1789874958 - 4);
-                while (true)
+                var blobHeader = await parser.ReadBlobHeader();
+                if (blobHeader == null) break;
+                
+                var message = await parser.ReadBlobAsync(blobHeader);
+
+                var headerType = blobHeader.Type;
+
+                var reader = PbfPrimitiveReader.Create(message);
+
+                var startPosition = blobHeader.StartPosition;
+                var info = new BlobIdsInfo
                 {
-                    var blobHeader = await parser.ReadBlobHeader();
-                    if (blobHeader == null) break;
-                    blobCnt++;
+                    StartPosition = startPosition
+                };
 
-                    if (blobCnt < 0)
+                infos.Add(info);
+
+                pool.WaitOne();
+
+                Task.Run(async () =>
+                {
+                    try
                     {
-                        parser.SkipBlob(blobHeader.DataSize);
-                        Console.Write($" Skipped: {blobCnt}.         \r");
-                        continue;
+                        await ProcessBlob(headerType, reader, info);
                     }
-
-                    var message = await parser.ReadBlobAsync(blobHeader);
-                    maxBlobSize = Math.Max(maxBlobSize, blobHeader.DataSize);
-                    maxDataSize = Math.Max(maxDataSize, message.RawSize);
-
-                    var headerType = blobHeader.Type;
-
-                    var reader = PbfPrimitiveReader.Create(message);
-
-                    var startPosition = blobHeader.StartPosition;
-                    var info = new BlobIdsInfo
+                    catch (Exception e)
                     {
-                        StartPosition = startPosition
-                    };
-
-                    infos.Add(info);
-
-                    pool.WaitOne();
-
-                    Console.Write($" Nodes: {nodeCnt.ToString("#,##0", CultureInfo.CurrentUICulture)}.\r");
-
-                    Task.Run(async () =>
+                        Console.WriteLine(e);
+                    }
+                    finally
                     {
-                        try
-                        {
-                            await ProcessBlob(headerType, reader, info);
-                            Interlocked.Add(ref nodeCnt, info.NodesCount);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-                        finally
-                        {
-                            pool.Release(1);
-                        }
-                    });
-                }
-
-                for (var i = 0; i < poolCount; i++) pool.WaitOne();
-
-                BlobIdsInfo.WriteIdsIndex(fileName, infos);
+                        pool.Release(1);
+                    }
+                });
             }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error processing file. After reading {stream.Position} of {stream.Length} bytes.");
-                Console.WriteLine(e);
-            }
+
+            for (var i = 0; i < poolCount; i++) pool.WaitOne();
+
+            BlobIdsInfo.WriteIdsIndex(fileName, infos);
         }
-
-        Console.WriteLine(
-            $"Statistic: max blob {maxBlobSize}, data: {maxDataSize}, total cnt: {blobCnt}, nodes: {nodeCnt}");
-        Console.ReadLine();
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error processing file. After reading {stream.Position} of {stream.Length} bytes.");
+            Console.WriteLine(e);
+        }
     }
 
     public static async Task ProcessBlob(string blobHeaderType,

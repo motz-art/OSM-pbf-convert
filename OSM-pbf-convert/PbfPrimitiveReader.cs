@@ -209,7 +209,7 @@ namespace OSM_pbf_convert
                 switch (reader.FieldNumber)
                 {
                         case 1:
-                            result.Id = reader.ReadSInt64();
+                            result.Id = reader.ReadInt64();
                             break;
                         case 2:
                             result.Keys = reader.ReadPackedInt64Array();

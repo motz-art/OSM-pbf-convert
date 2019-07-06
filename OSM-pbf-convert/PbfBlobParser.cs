@@ -1,7 +1,6 @@
 ﻿using ProtobufMapper;
 using ProtocolBuffers;
 using System;
-using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -71,25 +70,21 @@ namespace OSM_pbf_convert
 
         public async Task<Blob> ReadBlobAsync(BlobHeader header)
         {
-            var startPosition = reader.Position;
+            if (header == null) throw new ArgumentNullException(nameof(header));
             try
             {
-                 Console.Write($" Offset: {startPosition.ToString("#,##0", CultureInfo.CurrentUICulture)}, Reading {header.DataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
-
                 var result = await blobMapper.ReadMessageAsync(reader, (long)header.DataSize);
 
                 return result;
             }
             catch (Exception e)
             {
-                throw new InvalidOperationException("Error reading Blob.", e);
+                throw new InvalidOperationException($"Error reading '{header.Type}' Blob, StartPosition: {header.StartPosition}.", e);
             }
         }
 
         public void SkipBlob(ulong headerDataSize)
         {
-            Console.Write($" Offset: {reader.Position.ToString("#,##0", CultureInfo.CurrentUICulture)}, Skipping {headerDataSize.ToString("#,##0", CultureInfo.CurrentUICulture)}");
-
             reader.SkipLength((long)headerDataSize);
         }
     }
