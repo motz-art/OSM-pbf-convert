@@ -12,5 +12,10 @@
             Lon = lon;
             Lat = lat;
         }
+
+        public override string ToString()
+        {
+            return $"{nameof(Id)}: {Id}, {nameof(Lat)}: {Lat}, {nameof(Lon)}: {Lon}";
+        }
     }
 }
