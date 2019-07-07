@@ -68,13 +68,13 @@ namespace OSM_pbf_convert
 
         }
 
-        public async Task<Blob> ReadBlobAsync(BlobHeader header)
+        public async Task<Blob> ReadBlobDataAsync(BlobHeader header)
         {
             if (header == null) throw new ArgumentNullException(nameof(header));
             try
             {
                 var result = await blobMapper.ReadMessageAsync(reader, (long)header.DataSize);
-
+                result.Header = header;
                 return result;
             }
             catch (Exception e)
@@ -86,6 +86,18 @@ namespace OSM_pbf_convert
         public void SkipBlob(ulong headerDataSize)
         {
             reader.SkipLength((long)headerDataSize);
+        }
+
+        public static async Task<Blob> ReadBlobAsync(PbfBlobParser parser)
+        {
+            var blobHeader = await parser.ReadBlobHeader();
+            Blob blob = null;
+            if (blobHeader != null)
+            {
+                blob = await parser.ReadBlobDataAsync(blobHeader);
+            }
+
+            return blob;
         }
     }
 }

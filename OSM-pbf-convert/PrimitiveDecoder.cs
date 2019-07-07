@@ -96,5 +96,23 @@ namespace OSM_pbf_convert
                 }
             }
         }
+
+        public static IEnumerable<OsmNode> DecodeAllNodes(PrimitiveBlock data)
+        {
+            if (data.PrimitiveGroup == null) return Enumerable.Empty<OsmNode>();
+
+            if (data.PrimitiveGroup.Any(g => g.Nodes != null && g.Nodes.Any()))
+                throw new NotImplementedException("Reading of plain nodes is not implemented. Only dense nodes are supported.");
+
+            return DecodeDenseNodes(data);
+        }
+
+        public static IEnumerable<OsmRelation> DecodeRelations(PrimitiveBlock data)
+        {
+            return data.PrimitiveGroup.SelectMany(x => x.Relations).Select(x => new OsmRelation
+            {
+                Id = x.Id
+            });
+        }
     }
 }

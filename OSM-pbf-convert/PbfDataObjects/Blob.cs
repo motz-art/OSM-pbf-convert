@@ -4,6 +4,7 @@ namespace OSM_pbf_convert
 {
     public class Blob
     {
+        public BlobHeader Header { get; set; }
         public Stream RawData { get; set; }
         public long RawSize { get; set; }
         public Stream DeflateData { get; set; }

@@ -29,5 +29,22 @@ namespace ProtocolBuffers
 
             return value;
         }
+
+        public static ulong EncodeZigZag(long tmp)
+        {
+            ulong res;
+            if (tmp >= 0)
+            {
+                res = (ulong)tmp;
+                res <<= 1;
+            }
+            else
+            {
+                res = (ulong)-tmp-1;
+                res <<= 1;
+                res += 1;
+            }
+            return res;
+        }
     }
 }

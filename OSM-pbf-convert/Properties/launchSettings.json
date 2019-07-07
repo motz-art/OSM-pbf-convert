@@ -2,7 +2,7 @@
   "profiles": {
     "OSM-pbf-convert": {
       "commandName": "Project",
-      "commandLineArgs": "blob-index c:\\temp\\germany-latest.osm.pbf"
+      "commandLineArgs": "nodes-index c:\\temp\\germany-latest.osm.pbf"
     }
   }
 }

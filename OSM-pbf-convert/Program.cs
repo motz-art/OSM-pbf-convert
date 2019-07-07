@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Globalization;
-using System.Text;
-using System.Threading;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
@@ -18,9 +16,17 @@ namespace OSM_pbf_convert
 
             if (args[0] == "blob-index")
             {
-                using (var indexer = new BlobIdsIndexer(args[1]))
+                using (var indexer = PbfFileProcessor.Create(args[1], new IdsIndexerBlobProcessor(args[1])))
                 {
-                    await Task.Run(() => indexer.Process(args[1]));
+                    await indexer.Process();
+                }
+            }
+
+            if (args[0] == "nodes-index")
+            {
+                using (var indexer = PbfFileProcessor.Create(args[1], new NodesIndexBlobProcessor(args[1]+".nodes.dat")))
+                {
+                    await indexer.Process();
                 }
             }
 
@@ -28,6 +34,9 @@ namespace OSM_pbf_convert
             {
                 Task.Run(() => MapBuilder.Process(args[1], args[1] + ".nodes.dat")).Wait();
             }
+
+            Console.WriteLine("Done!");
+            Console.ReadKey();
         }
     }
 }

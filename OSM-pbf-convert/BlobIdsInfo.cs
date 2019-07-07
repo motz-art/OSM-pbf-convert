@@ -4,7 +4,7 @@ using System.Text;
 
 namespace OSM_pbf_convert
 {
-    internal class BlobIdsInfo
+    public class BlobIdsInfo
     {
         public long StartPosition { get;set; }
         public long MinNodeId { get; set; }

@@ -23,8 +23,8 @@ namespace OSM_pbf_convert
                     stream.Position = 0;
                     var parser = new PbfBlobParser(stream);
                     parser.SkipBlob((ulong) (info.StartPosition - 4));
-                    var header = await parser.ReadBlobHeader();
-                    var blob = await parser.ReadBlobAsync(header);
+                    var blob = await PbfBlobParser.ReadBlobAsync(parser);
+                    
                     var primitiveReader = PbfPrimitiveReader.Create(blob);
                     var data = primitiveReader.ReadData();
 
