@@ -6,6 +6,18 @@ using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
+    class NullAccessor<TKey, TItem> : IAccessor<TKey, TItem>
+    {
+        public TItem Read(TKey key)
+        {
+            return default(TItem);
+        }
+
+        public void Write(TKey key, TItem value)
+        {
+        }
+    }
+
     class MapBuilder
     {
         public static async Task Process(string fileName, string indexFileName)
@@ -14,7 +26,7 @@ namespace OSM_pbf_convert
             
             Console.WriteLine($"Index size: {index.Count}");
 
-            var cache = new CachedReader();
+            var cache = new CachedAccessor<long, Object>(new NullAccessor<long, Object>());
 
             using (var stream = File.OpenRead(fileName))
             {
@@ -40,7 +52,7 @@ namespace OSM_pbf_convert
 
                         foreach (var blobIdsInfo in blobsToRead)
                         {
-                            cache.Get(blobIdsInfo.StartPosition);
+                            cache.Read(blobIdsInfo.StartPosition);
                         }
 
                     }

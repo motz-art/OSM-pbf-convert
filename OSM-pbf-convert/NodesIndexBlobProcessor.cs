@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -8,31 +7,63 @@ using ProtocolBuffers;
 
 namespace OSM_pbf_convert
 {
+    class BlockIndexAccessor : IAccessor<long, MapBlock>
+    {
+        private readonly Stream stream;
+
+        public BlockIndexAccessor(Stream stream)
+        {
+            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+        }
+
+        public MapBlock Read(long key)
+        {
+            var block = MapBlock.Read(stream, key);
+            return block;
+        }
+
+        public void Write(long key, MapBlock value)
+        {
+            if (stream.Length < key)
+            {
+                stream.SetLength(key);
+            }
+            value.Write(stream, key);
+        }
+    }
+
     public class NodesIndexBlobProcessor:
         IBlobProcessor<string>,
         IDisposable
     {
         private readonly IndexNode root = new IndexNode();
 
-        private SplitBlock mapRoot = new SplitBlock();
+        private readonly SplitBlock mapRoot = new SplitBlock();
 
-        private Stream stream;
-        private Stream istream;
-        private BinaryWriter writer;
-        private BinaryWriter iwriter;
+        private readonly Stream stream;
+        private readonly Stream blockStream;
+        private readonly Stream indexStream;
+        private readonly BinaryWriter writer;
+        private readonly BinaryWriter indexWriter;
+        private readonly CachedAccessor<long, MapBlock> mapAccessor;
         
-        private int lat = 0;
-        private int lon = 0;
-        private long lastPosition = 0;
-        private long id = 0;
-        private long totalCnt = 0;
+        private int lastLat;
+        private int lastLon;
+        private long lastPosition;
+        private long lastId;
+        private long lastOffset;
+        private long freeOffset = -1;
+        private long totalNodesCount = 0;
+        private int splitCount;
 
         public NodesIndexBlobProcessor(string fileName)
         {
-            this.stream = File.Open(fileName, FileMode.Create);
-            this.writer = new BinaryWriter(stream, Encoding.UTF8, true);
-            istream = File.Open(fileName + ".idx", FileMode.Create);
-            iwriter = new BinaryWriter(istream, Encoding.UTF8, true);
+            stream = File.Open(fileName + ".nodes.dat", FileMode.Create);
+            writer = new BinaryWriter(stream, Encoding.UTF8, true);
+            indexStream = File.Open(fileName + ".idx", FileMode.Create);
+            indexWriter = new BinaryWriter(indexStream, Encoding.UTF8, true);
+            blockStream = File.Open(fileName + ".mblocks.dat", FileMode.Create, FileAccess.ReadWrite);
+            mapAccessor = new CachedAccessor<long, MapBlock>(new BlockIndexAccessor(blockStream));
         }
 
         public string BlobRead(Blob blob)
@@ -42,13 +73,16 @@ namespace OSM_pbf_convert
 
         public void Finish()
         {
+            mapAccessor.Flush();
         }
 
         public void ProcessPrimitives(PrimitiveAccessor accessor, string data)
         {
+            Console.WriteLine($"Nodes: {totalNodesCount}, Total: {mapAccessor.TotalCount}, SplitCount: {splitCount}, HitCount: {mapAccessor.HitsCount}.\r");
             foreach (var node in accessor.Nodes)
             {
                 //WriteNode(node);
+                totalNodesCount++;
 
                 var lat = CoordAsInt(node.Lat);
                 var lon = CoordAsInt(node.Lon);
@@ -61,15 +95,29 @@ namespace OSM_pbf_convert
         
         private void AddNode(SplitBlock block, MapNode node, int depth = 0)
         {
-            var lat = (int)BitConverter.GetBytes(IPAddress.HostToNetworkOrder(node.Lat))[depth];
-            var lon = (int)BitConverter.GetBytes(IPAddress.HostToNetworkOrder(node.Lon))[depth];
-            var i = (lat << 8) | lon;
+            var i = CalcBlockIndex(node, depth);
             if (block.Blocks[i] == null)
             {
-                block.Blocks[i] = AddNode(new MapBlock(), node, depth);
-            } else if (block.Blocks[i] is MapBlock b)
+                long offset;
+                if (freeOffset > 0)
+                {
+                    offset = freeOffset;
+                    freeOffset = -1;
+                }
+                else
+                {
+                    lastOffset += MapBlock.BlockSize;
+                    offset = lastOffset;
+                }
+
+                var mapBlock = new MapBlock { Offset = offset };
+                block.Blocks[i] = AddNode(mapBlock, node, depth);
+                mapAccessor.Write(mapBlock.Offset, mapBlock);
+            } else if (block.Blocks[i] is long blockOffset)
             {
-                block.Blocks[i] = AddNode(b, node, depth);
+                var b = mapAccessor.Read(blockOffset);
+                var obj = AddNode(b, node, depth);
+                block.Blocks[i] = obj;
             }
             else if (block.Blocks[i] is SplitBlock s)
             {
@@ -83,16 +131,31 @@ namespace OSM_pbf_convert
             {
                 mapBlock.Nodes[mapBlock.Count] = node;
                 mapBlock.Count++;
-                return mapBlock;
+                return mapBlock.Offset;
             }
 
+            // mapBlock.Count = 0;
+            freeOffset = mapBlock.Offset;
+            mapBlock.Offset = -2; //Removed!
+            splitCount++;
             var block = new SplitBlock();
-            foreach (var mapNode in mapBlock.Nodes)
+            foreach (var mapNode in mapBlock.Nodes) // ToDo: remove old block from index!
             {
-                AddNode(block, node, depth + 1);
+                AddNode(block, mapNode, depth + 1);
             }
+            
+            AddNode(block, node, depth + 1);
 
             return block;
+        }
+
+        private static int CalcBlockIndex(MapNode node, int depth)
+        {
+            depth++;
+            var lat = node.Lat >> (32 - depth * 4);
+            var lon = node.Lon >> (32 - depth * 4);
+            var i = ((lat & 0x0F) << 4) | (lon & 0x0F);
+            return i;
         }
 
         private int Split<T>(T[] nodes, Func<T, double> fn)
@@ -169,20 +232,18 @@ namespace OSM_pbf_convert
 
         private void WriteNode(OsmNode node)
         {
-            totalCnt++;
-
             var cLat = CoordAsInt(node.Lat);
-            StorageHelpers.Write7BitEncodedInt(writer, EncodeHelpers.EncodeZigZag(cLat - lat));
-            lat = cLat;
+            StorageHelpers.Write7BitEncodedInt(writer, EncodeHelpers.EncodeZigZag(cLat - lastLat));
+            lastLat = cLat;
             var cLon = CoordAsInt(node.Lon);
-            StorageHelpers.Write7BitEncodedInt(writer, EncodeHelpers.EncodeZigZag(cLon - lon));
-            lon = cLon;
+            StorageHelpers.Write7BitEncodedInt(writer, EncodeHelpers.EncodeZigZag(cLon - lastLon));
+            lastLon = cLon;
             
-            var cid = (ulong) (node.Id - id);
-            StorageHelpers.Write7BitEncodedInt(iwriter, cid);
-            id = node.Id;
+            var cid = (ulong) (node.Id - lastId);
+            StorageHelpers.Write7BitEncodedInt(indexWriter, cid);
+            lastId = node.Id;
 
-            StorageHelpers.Write7BitEncodedInt(iwriter, (ulong)(stream.Position - lastPosition));
+            StorageHelpers.Write7BitEncodedInt(indexWriter, (ulong)(stream.Position - lastPosition));
             lastPosition = stream.Position;
         }
 
@@ -194,9 +255,10 @@ namespace OSM_pbf_convert
         public void Dispose()
         {
             writer?.Dispose();
-            iwriter?.Dispose();
+            indexWriter?.Dispose();
             stream?.Dispose();
-            istream?.Dispose();
+            indexStream?.Dispose();
+            blockStream?.Dispose();
         }
     }
 
@@ -208,13 +270,15 @@ namespace OSM_pbf_convert
 
     class SplitBlock
     {
-        public Object[] Blocks { get; } = new object[65536];
+        public Object[] Blocks { get; } = new Object[256];
     }
 
     class MapBlock
     {
+        public long Offset { get; set; }
         public int Count { get; set; }
         public MapNode[] Nodes { get; set; } = new MapNode[1000];
+        public const long BlockSize = 8 * 1024;
 
         public void Write(Stream stream, long offset)
         {
@@ -222,10 +286,16 @@ namespace OSM_pbf_convert
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
                 writer.Write7BitEncodedInt((ulong) Count);
-                foreach (var node in Nodes)
+                var lastLat = 0;
+                var lastLon = 0;
+                for (var i = 0; i < Count; i++)
                 {
-                    writer.Write7BitEncodedInt((ulong) node.Lat);
-                    writer.Write7BitEncodedInt((ulong) node.Lon);
+                    var node = Nodes[i];
+                    writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(node.Lat - lastLat));
+                    lastLat = node.Lat;
+
+                    writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(node.Lon - lastLon));
+                    lastLon = node.Lon;
                 }
             }
         }
@@ -237,10 +307,29 @@ namespace OSM_pbf_convert
             {
                 var cnt = (int)reader.Read7BitEncodedInt();
 
-                return new MapBlock
+                var res = new MapBlock
                 {
+                    Offset = offset,
                     Count = cnt
                 };
+
+                var lat = 0;
+                var lon = 0;
+                for (int i = 0; i < cnt; i++)
+                {
+                    lat += (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+                    lon += (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+                    
+                    var node = new MapNode
+                    {
+                        Lat = lat,
+                        Lon = lon
+                    };
+
+                    res.Nodes[i] = node;
+                }
+
+                return res;
             }
         }
     }

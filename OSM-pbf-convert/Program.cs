@@ -24,7 +24,7 @@ namespace OSM_pbf_convert
 
             if (args[0] == "nodes-index")
             {
-                using (var indexer = PbfFileProcessor.Create(args[1], new NodesIndexBlobProcessor(args[1]+".nodes.dat")))
+                using (var indexer = PbfFileProcessor.Create(args[1], new NodesIndexBlobProcessor(args[1])))
                 {
                     await indexer.Process();
                 }
