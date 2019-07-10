@@ -6,7 +6,7 @@ namespace OSM_pbf_convert
     {
         private readonly IAccessor<TKey, TValue> accessor;
         private readonly Dictionary<TKey, CacheItem<TValue>> cache = new Dictionary<TKey, CacheItem<TValue>>();
-        private readonly int limit = 2000;
+        private readonly int limit = 20000;
 
         public CachedAccessor(IAccessor<TKey, TValue> accessor)
         {

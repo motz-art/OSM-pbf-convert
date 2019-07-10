@@ -13,14 +13,30 @@ namespace HuffmanCoding
 
         }
 
+        public IReadOnlyList<T> Items
+        {
+            get => items;
+            set => items = new List<T>(value);
+        }
+
         public Heap(IComparer<T> comparer)
         {
             this.comparer = comparer;
         }
 
+        public Heap(List<T> list, IComparer<T> comparer)
+        {
+            this.items = list;
+            this.comparer = comparer;
+        }
+
         public void Heapify()
         {
-            throw new NotImplementedException("");
+            var i = Parent(items.Count - 1);
+            for (; i >= 0; i--)
+            {
+                PushDown(i);
+            }
         }
 
         public int LiftUp(int i)
@@ -42,16 +58,7 @@ namespace HuffmanCoding
             while (l < items.Count)
             {
                 var r = l+1;
-                if (comparer.Compare(items[l], items[r]) < 0)
-                {
-                    if (comparer.Compare(items[l], items[i]) >= 0)
-                    {
-                        return i;
-                    }
-                    Swap(i, l);
-                    i = l;
-                }
-                else
+                if (r < items.Count && comparer.Compare(items[l], items[r]) > 0)
                 {
                     if (comparer.Compare(items[r], items[i]) >= 0)
                     {
@@ -59,6 +66,15 @@ namespace HuffmanCoding
                     }
                     Swap(i, r);
                     i = r;
+                }
+                else
+                {
+                    if (comparer.Compare(items[l], items[i]) >= 0)
+                    {
+                        return i;
+                    }
+                    Swap(i, l);
+                    i = l;
                 }
                 l = LeftChild(i);
             }
@@ -90,6 +106,12 @@ namespace HuffmanCoding
         public static int RightChild(int i)
         {
             return (i << 1) + 2;
+        }
+
+        public T Pop()
+        {
+            var res = items[0];
+            return res;
         }
     }
 }

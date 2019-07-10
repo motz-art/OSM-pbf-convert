@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using FluentAssertions;
+using NUnit.Framework;
 
 namespace HuffmanCoding.Tests
 {
@@ -38,6 +39,22 @@ namespace HuffmanCoding.Tests
         public int CalcRightChildIndexTest(int i)
         {
             return Heap<int>.RightChild(i);
+        }
+
+        [Test]
+        public void HeapifyTest()
+        {
+            var items = new[] {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+            var heap = new Heap<int>();
+            heap.Items = items;
+            heap.Heapify();
+
+            heap.Items[0].Should().Be(0);
+            for (int i = 1; i < heap.Items.Count; i++)
+            {
+                var p = Heap<int>.Parent(i);
+                heap.Items[i].Should().BeGreaterOrEqualTo(heap.Items[p]);
+            }
         }
     }
 }
