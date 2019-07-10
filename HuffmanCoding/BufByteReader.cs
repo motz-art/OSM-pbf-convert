@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace ProtocolBuffers
+namespace HuffmanCoding
 {
     public class BufByteReader
     {
         private Stream stream;
         
-        const int size = 4096;
+        const int size = 64 * 1024;
         
         byte[] curBuf = new byte[size];
         private int curLength = 0;
@@ -83,21 +83,5 @@ namespace ProtocolBuffers
             }
             return curBuf[bufPosition++];
         }
-
-        public ulong Read7BitEncodedInt()
-        {
-            ulong res = 0;
-
-            ulong b;
-
-            do
-            {
-                b = ReadByte();
-                res = (res << 7) + (b & 0b0111_1111);
-            } while (b >= 0b1000_0000);
-
-            return res;
-        }
-
     }
 }

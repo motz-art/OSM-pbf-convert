@@ -149,7 +149,7 @@ namespace OSM_pbf_convert
             ulong cnt = 0;
             using (var stream = File.Create(name))
             {
-                using (var writer = new BinaryWriter(stream))
+                using (var writer = new BufByteWriter(stream))
                 {
                     ulong lastIndex = 0;
 
