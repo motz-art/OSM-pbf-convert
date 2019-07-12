@@ -2,7 +2,7 @@
   "profiles": {
     "OSM-pbf-convert": {
       "commandName": "Project",
-      "commandLineArgs": "nodes-index c:\\temp\\germany-latest.osm.pbf"
+      "commandLineArgs": "heat-map d:\\temp\\planet-190624.osm.pbf"
     }
   }
 }

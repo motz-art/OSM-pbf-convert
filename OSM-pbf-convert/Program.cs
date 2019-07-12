@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
@@ -18,7 +17,7 @@ namespace OSM_pbf_convert
             {
                 using (var indexer = PbfFileProcessor.Create(args[1], new IdsIndexerBlobProcessor(args[1])))
                 {
-                    await indexer.Process();
+                    await indexer.Process().ConfigureAwait(false);
                 }
             }
 
@@ -26,13 +25,21 @@ namespace OSM_pbf_convert
             {
                 using (var indexer = PbfFileProcessor.Create(args[1], new NodesIndexBlobProcessor(args[1])))
                 {
-                    await indexer.Process();
+                    await indexer.Process().ConfigureAwait(false);
                 }
             }
 
             if (args[0] == "tst")
             {
                 Task.Run(() => MapBuilder.Process(args[1], args[1] + ".nodes.dat")).Wait();
+            }
+
+            if (args[0] == "heat-map")
+            {
+                using (var indexer = PbfFileProcessor.Create(args[1], new HeatMapProcessor(args[1])))
+                {
+                    await indexer.Process().ConfigureAwait(false);
+                }
             }
 
             Console.WriteLine("Done!");

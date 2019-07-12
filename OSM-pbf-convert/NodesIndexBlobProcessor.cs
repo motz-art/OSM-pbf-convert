@@ -89,8 +89,8 @@ namespace OSM_pbf_convert
             {
                 totalNodesCount++;
 
-                var lat = CoordAsInt(node.Lat);
-                var lon = CoordAsInt(node.Lon);
+                var lat = Helpers.CoordAsInt(node.Lat);
+                var lon = Helpers.CoordAsInt(node.Lon);
 
                 var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
 
@@ -276,11 +276,6 @@ namespace OSM_pbf_convert
 
             indexWriter.Write7BitEncodedInt((ulong)(stream.Position - lastPosition));
             lastPosition = stream.Position;
-        }
-
-        private int CoordAsInt(double value)
-        {
-            return (int)(value / 180 * int.MaxValue);
         }
     }
 
