@@ -4,21 +4,21 @@ using System.Threading.Tasks;
 
 namespace HuffmanCoding
 {
-    public class BufByteReader
+    public class BufByteReader : IDisposable
     {
-        private Stream stream;
+        private readonly Stream stream;
         
         const int size = 64 * 1024;
         
         byte[] curBuf = new byte[size];
-        private int curLength = 0;
+        private int curLength;
         
         byte[] tmpBuf = new byte[size];
-        private int tmpLength = 0;
+        private int tmpLength;
 
-        private int bufPosition = 0;
+        private int bufPosition;
 
-        private bool endOfFile = false;
+        private bool endOfFile;
         private Task readTask;
 
         public BufByteReader(Stream stream)
@@ -34,7 +34,7 @@ namespace HuffmanCoding
 
         private async Task ReadBuf()
         {
-            tmpLength = await stream.ReadAsync(tmpBuf, 0, tmpBuf.Length);
+            tmpLength = await stream.ReadAsync(tmpBuf, 0, tmpBuf.Length).ConfigureAwait(false);
             if (tmpLength <= 0)
             {
                 endOfFile = true;
@@ -49,7 +49,6 @@ namespace HuffmanCoding
             }
 
             readTask.Wait();
-
             if (tmpLength <= 0) return;
 
             var tmp = curBuf;
@@ -82,6 +81,10 @@ namespace HuffmanCoding
                 throw new InvalidOperationException("Can't read beyond end of stream.");
             }
             return curBuf[bufPosition++];
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

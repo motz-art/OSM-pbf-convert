@@ -1,12 +1,12 @@
+using HuffmanCoding;
+using ProtocolBuffers;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using HuffmanCoding;
-using ProtocolBuffers;
 
 namespace OSM_pbf_convert
 {
@@ -16,13 +16,12 @@ namespace OSM_pbf_convert
     {
         private const int BufferLimit = 1_000_000;
         private readonly List<MapNode> buffer = new List<MapNode>(BufferLimit);
-        private readonly List<int> fileIds = new List<int>();
+        private readonly List<List<int>> fileIds = new List<List<int>>();
+        private readonly List<Task> mergeTasks = new List<Task>();
         private readonly string fileName;
 
         private readonly Stream indexStream;
         private readonly BinaryWriter indexWriter;
-        private readonly object locker = new object();
-
 
         private readonly Stream stream;
         private readonly BinaryWriter writer;
@@ -52,12 +51,34 @@ namespace OSM_pbf_convert
         public void Finish()
         {
             WriteIndexItems();
+            // ToDo: Merge all;
 
-            lock (fileIds)
+            List<int> ids = new List<int>();
+            int level;
+            int resultId;
+            for (level = 0; level < fileIds.Count; level++)
             {
-                indexId++;
-                Merge(fileIds.ToArray(), indexId);
+                if (mergeTasks.Count > level && mergeTasks[level] != null)
+                {
+                    mergeTasks[level].Wait();
+                }
+
+                var files = fileIds[level];
+                lock (files)
+                {
+                    ids.AddRange(files);
+                    files.Clear();
+                }
+
+                if (ids.Count >= 4)
+                {
+                    resultId = Interlocked.Increment(ref indexId);
+                    Merge(level, ids.ToArray(), resultId);
+                    ids.Clear();
+                }
             }
+            resultId = Interlocked.Increment(ref indexId);
+            Merge(level, ids.ToArray(), resultId);
         }
 
         public void ProcessPrimitives(PrimitiveAccessor accessor, string data)
@@ -71,7 +92,7 @@ namespace OSM_pbf_convert
                 var lat = CoordAsInt(node.Lat);
                 var lon = CoordAsInt(node.Lon);
 
-                var mNode = new MapNode {Id = node.Id, Lat = lat, Lon = lon};
+                var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
 
                 WriteNode(mNode);
 
@@ -91,7 +112,10 @@ namespace OSM_pbf_convert
         {
             buffer.Add(mNode);
 
-            if (buffer.Count >= BufferLimit) WriteIndexItems();
+            if (buffer.Count >= BufferLimit)
+            {
+                WriteIndexItems();
+            }
         }
 
         private void WriteIndexItems()
@@ -100,15 +124,9 @@ namespace OSM_pbf_convert
 
             buffer.Clear();
 
-            int id;
-            lock (fileIds)
-            {
-                id = ++indexId;
-                fileIds.Add(id);
-            }
+            var id = Interlocked.Increment(ref indexId);
 
-            var name = GetName(id);
-            Task.Run(() => WriteBuf(buf, name));
+            Task.Run(() => WriteBuf(buf, id));
         }
 
         private string GetName(int id)
@@ -116,84 +134,96 @@ namespace OSM_pbf_convert
             return $"{fileName}.sort{id}.tmp";
         }
 
-        private void WriteBuf(ulong[] buf, string name)
+        private void WriteBuf(ulong[] buf, int id)
         {
             Array.Sort(buf);
 
-            WriteSequence(buf, name);
+            var name = GetName(id);
 
-            Task.Run(() => MergeFilesIfNeeded());
+            SpatialData.WriteSequence(buf, name);
+
+            FileWritten(id, 0);
         }
 
-        private void MergeFilesIfNeeded()
+        private void FileWritten(int id, int i)
         {
             int[] ids = null;
-            var resultId = 0;
+
+            List<int> level;
             lock (fileIds)
             {
-                if (fileIds.Count >= 4)
+                while (i >= fileIds.Count)
                 {
-                    resultId = ++indexId;
-                    ids = fileIds.ToArray();
-                    fileIds.Clear();
-                    fileIds.Add(resultId);
+                    fileIds.Add(new List<int>());
+                }
+                level = fileIds[i];
+            }
+
+            lock (level)
+            {
+                level.Add(id);
+                if (level.Count >= 4)
+                {
+                    ids = level.ToArray();
+                    level.Clear();
                 }
             }
 
-            if (ids != null) Merge(ids, resultId);
+            if (ids != null)
+            {
+                var resultId = Interlocked.Increment(ref indexId);
+                while (mergeTasks.Count <= i)
+                {
+                    mergeTasks.Add(null);
+                }
+
+                if (mergeTasks[i] != null)
+                {
+                    mergeTasks[i].Wait();
+                }
+                mergeTasks[i] = Task.Run(() => Merge(i + 1, ids, resultId));
+            }
         }
 
-        private static void WriteSequence(IEnumerable<ulong> buf, string name)
+        private void Merge(int level, int[] fileIds, int resultFileId)
         {
-            var watch = Stopwatch.StartNew();
-            ulong cnt = 0;
-            using (var stream = File.Create(name))
+            var source = CreateMergedSource(fileIds);
+
+            SpatialData.WriteSequence(source, GetName(resultFileId));
+
+            FileWritten(resultFileId, level);
+            foreach (var fileId in fileIds)
             {
-                using (var writer = new BufByteWriter(stream))
+                File.Delete(GetName(fileId));
+            }
+        }
+
+        private IEnumerable<ulong> CreateMergedSource(int[] fileIds)
+        {
+            var sources = fileIds.Select(id => SpatialData.ReadSequence(GetName(id))).ToList();
+
+            while (sources.Count > 1)
+            {
+                var newSources = new List<IEnumerable<ulong>>();
+                for (var i = 0; i < sources.Count; i += 2)
                 {
-                    ulong lastIndex = 0;
-
-                    foreach (var index in buf)
+                    if (i + 1 < sources.Count)
                     {
-                        cnt++;
-
-                        writer.Write7BitEncodedInt(index - lastIndex);
-
-                        lastIndex = index;
+                        newSources.Add(MergeSorted(sources[i], sources[i + 1]));
+                    }
+                    else
+                    {
+                        newSources.Add(sources[i]);
                     }
                 }
+
+                sources = newSources;
             }
 
-            watch.Stop();
-            Console.WriteLine(
-                $"Written: {cnt}, in {watch.Elapsed}, speed: {cnt / watch.Elapsed.TotalSeconds / 1000} k/s.");
+            return sources[0];
         }
 
-        private void Merge(int[] fileIds, int resultFileId)
-        {
-            lock (locker)
-            {
-                var sources = fileIds.Select(id => ReadSequence(GetName(id))).ToList();
-
-                while (sources.Count > 1)
-                {
-                    var newSources = new List<IEnumerable<ulong>>();
-                    for (var i = 0; i < sources.Count; i += 2)
-                        if (i + 1 < sources.Count)
-                            newSources.Add(MergeSorted(sources[i], sources[i + 1]));
-                        else
-                            newSources.Add(sources[i]);
-
-                    sources = newSources;
-                }
-
-                WriteSequence(sources[0], GetName(resultFileId));
-
-                foreach (var fileId in fileIds) File.Delete(GetName(fileId));
-            }
-        }
-
-        private IEnumerable<ulong> MergeSorted(IEnumerable<ulong> sourceA, IEnumerable<ulong> sourceB)
+        private static IEnumerable<ulong> MergeSorted(IEnumerable<ulong> sourceA, IEnumerable<ulong> sourceB)
         {
             using (var a = sourceA.GetEnumerator())
             {
@@ -203,6 +233,7 @@ namespace OSM_pbf_convert
                     var hasB = b.MoveNext();
 
                     while (hasA && hasB)
+                    {
                         if (a.Current < b.Current)
                         {
                             yield return a.Current;
@@ -213,6 +244,7 @@ namespace OSM_pbf_convert
                             yield return b.Current;
                             hasB = b.MoveNext();
                         }
+                    }
 
                     while (hasA)
                     {
@@ -229,20 +261,6 @@ namespace OSM_pbf_convert
             }
         }
 
-        private IEnumerable<ulong> ReadSequence(string name)
-        {
-            using (var stream = File.OpenRead(name))
-            {
-                ulong last = 0;
-                var reader = new BufByteReader(stream);
-                while (reader.CanRead())
-                {
-                    last += reader.Read7BitEncodedInt();
-                    yield return last;
-                }
-            }
-        }
-
         private void WriteNode(MapNode node)
         {
             var cLat = node.Lat;
@@ -252,17 +270,17 @@ namespace OSM_pbf_convert
             writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLon - lastLon));
             lastLon = cLon;
 
-            var cid = (ulong) (node.Id - lastId);
+            var cid = (ulong)(node.Id - lastId);
             indexWriter.Write7BitEncodedInt(cid);
             lastId = node.Id;
 
-            indexWriter.Write7BitEncodedInt((ulong) (stream.Position - lastPosition));
+            indexWriter.Write7BitEncodedInt((ulong)(stream.Position - lastPosition));
             lastPosition = stream.Position;
         }
 
         private int CoordAsInt(double value)
         {
-            return (int) (value / 180 * int.MaxValue);
+            return (int)(value / 180 * int.MaxValue);
         }
     }
 
@@ -272,8 +290,16 @@ namespace OSM_pbf_convert
         {
             var a = x.BlockIndex;
             var b = y.BlockIndex;
-            if (a < b) return -1;
-            if (a > b) return 1;
+            if (a < b)
+            {
+                return -1;
+            }
+
+            if (a > b)
+            {
+                return 1;
+            }
+
             return 0;
         }
     }
@@ -290,8 +316,8 @@ namespace OSM_pbf_convert
             {
                 ulong res = 0;
                 ulong mask = 1;
-                var lat = (ulong) Lat << 1;
-                var lon = (ulong) Lon;
+                var lat = (ulong)Lat << 1;
+                var lon = (ulong)Lon;
                 for (var i = 0; i < 32; i++)
                 {
                     res |= lon & mask;
