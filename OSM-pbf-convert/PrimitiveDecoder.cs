@@ -10,7 +10,7 @@ namespace OSM_pbf_convert
         {
             if (data == null || data.PrimitiveGroup == null) yield break;
 
-            foreach (var way in data.PrimitiveGroup.SelectMany(x => x.Ways))
+            foreach (var way in data.PrimitiveGroup.Where(x => x.Ways != null).SelectMany(x => x.Ways))
             {
                 var ids = DecodeDeltaItems(way.Refs);
                 var tags = DecodeTags(way.Keys, way.Values, data.Strings);

@@ -1,10 +1,7 @@
-using HuffmanCoding;
-using ProtocolBuffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,27 +17,13 @@ namespace OSM_pbf_convert
         private readonly List<Task> mergeTasks = new List<Task>();
         private readonly string fileName;
 
-        private readonly Stream indexStream;
-        private readonly BinaryWriter indexWriter;
-
-        private readonly Stream stream;
-        private readonly BinaryWriter writer;
         private int indexId;
 
-        private long lastId;
-        private int lastLat;
-        private int lastLon;
-        private long lastPosition;
         private long totalNodesCount;
 
         public NodesIndexBlobProcessor(string fileName)
         {
             this.fileName = fileName;
-
-            stream = File.Open(fileName + ".nodes.dat", FileMode.Create);
-            writer = new BinaryWriter(stream, Encoding.UTF8, true);
-            indexStream = File.Open(fileName + ".idx", FileMode.Create);
-            indexWriter = new BinaryWriter(indexStream, Encoding.UTF8, true);
         }
 
         public string BlobRead(Blob blob)
@@ -94,18 +77,12 @@ namespace OSM_pbf_convert
 
                 var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
 
-                WriteNode(mNode);
-
                 AddToSort(mNode);
             }
         }
 
         public void Dispose()
         {
-            writer?.Dispose();
-            indexWriter?.Dispose();
-            stream?.Dispose();
-            indexStream?.Dispose();
         }
 
         private void AddToSort(MapNode mNode)
@@ -261,21 +238,6 @@ namespace OSM_pbf_convert
             }
         }
 
-        private void WriteNode(MapNode node)
-        {
-            var cLat = node.Lat;
-            writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLat - lastLat));
-            lastLat = cLat;
-            var cLon = node.Lon;
-            writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLon - lastLon));
-            lastLon = cLon;
-
-            var cid = (ulong)(node.Id - lastId);
-            indexWriter.Write7BitEncodedInt(cid);
-            lastId = node.Id;
-
-            indexWriter.Write7BitEncodedInt((ulong)(stream.Position - lastPosition));
-            lastPosition = stream.Position;
         }
     }
 

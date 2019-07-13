@@ -44,7 +44,7 @@ namespace OSM_pbf_convert
 
         public static void WriteIdsIndex(string fileName, IEnumerable<BlobIdsInfo> infos)
         {
-            using (var nodesStream = File.Open(fileName + ".nodes.dat", FileMode.Create))
+            using (var nodesStream = File.Open(fileName, FileMode.Create))
             {
                 var writer = new BinaryWriter(nodesStream, Encoding.Unicode, true);
                 foreach (var info in infos) BlobIdsInfo.WriteBlobInfo(writer, info);

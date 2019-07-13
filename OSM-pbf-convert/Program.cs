@@ -15,7 +15,8 @@ namespace OSM_pbf_convert
 
             if (args[0] == "blob-index")
             {
-                using (var indexer = PbfFileProcessor.Create(args[1], new IdsIndexerBlobProcessor(args[1])))
+                using (var indexer = PbfFileProcessor.Create(args[1],
+                    new IdsIndexerBlobProcessor(args[1] + ".blobs.dat")))
                 {
                     await indexer.Process().ConfigureAwait(false);
                 }
@@ -29,9 +30,17 @@ namespace OSM_pbf_convert
                 }
             }
 
+            if (args[0] == "join")
+            {
+                using (var indexer = PbfFileProcessor.Create(args[1], new NodesToWaysJoinProcessor(args[1], false)))
+                {
+                    await indexer.Process();
+                }
+            }
+
             if (args[0] == "tst")
             {
-                Task.Run(() => MapBuilder.Process(args[1], args[1] + ".nodes.dat")).Wait();
+                Task.Run(() => MapBuilder.Process(args[1], args[1] + ".blobs.dat")).Wait();
             }
 
             if (args[0] == "heat-map")
