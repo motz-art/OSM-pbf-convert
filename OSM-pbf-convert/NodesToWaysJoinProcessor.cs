@@ -34,6 +34,9 @@ namespace OSM_pbf_convert
         private readonly Stream stream;
         private readonly BinaryWriter writer;
 
+        private readonly Stream waysStream;
+        private readonly BinaryWriter waysWriter;
+
         private long lastId;
         private long lastIndexId;
         private int lastLat;
@@ -47,6 +50,9 @@ namespace OSM_pbf_convert
 
         public NodesToWaysJoinProcessor(string fileName, bool canLoad)
         {
+            waysStream = File.Open(fileName + ".ways.dat", FileMode.Create);
+            waysWriter = new BinaryWriter(waysStream, Encoding.UTF8, true);
+
             var indexFileName = fileName + ".idx";
             if (canLoad && File.Exists(indexFileName))
             {
@@ -111,7 +117,7 @@ namespace OSM_pbf_convert
                 stream.Flush();
                 indexWriter.Flush();
                 indexStream.Flush();
-                
+
                 var allNodeIds = ways.SelectMany(x => x.NodeIds).Distinct().ToList();
                 allNodeIds.Sort();
 
@@ -296,6 +302,8 @@ namespace OSM_pbf_convert
             indexWriter?.Dispose();
             stream?.Dispose();
             indexStream?.Dispose();
+            waysWriter?.Dispose();
+            waysStream?.Dispose();
         }
 
         private void LoadIndex()
@@ -364,28 +372,18 @@ namespace OSM_pbf_convert
 
         private void WriteWay(OsmWay way, IEnumerable<MapNode> nodes)
         {
-            if (lastId > way.Id)
-            {
-                lastId = 0;
-                // ToDo: Write ways start;
-                indexWriter.Write((byte)255);
-                indexWriter.Write(stream.Position);
-            }
-
-            stream.Position = stream.Length;
-
             var cid = (ulong) (way.Id - lastId);
-            writer.Write7BitEncodedInt(cid);
+            waysWriter.Write7BitEncodedInt(cid);
             lastId = way.Id;
 
             foreach (var node in nodes)
             {
                 var cLat = node.Lat;
-                writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLat - lastLat));
+                waysWriter.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLat - lastLat));
                 lastLat = cLat;
 
                 var cLon = node.Lon;
-                writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLon - lastLon));
+                waysWriter.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLon - lastLon));
                 lastLon = cLon;    
             }
         }
