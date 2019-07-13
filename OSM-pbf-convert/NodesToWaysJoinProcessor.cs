@@ -139,11 +139,18 @@ namespace OSM_pbf_convert
             var offset = 0;
             ulong v = 0;
 
+            var searchWatch = new Stopwatch();
+            var readerWatch = new Stopwatch();
+
+
             bool continuation = false;
 
             foreach (var nodeId in ids)
             {
+                searchWatch.Start();
                 var blockIndex = FindBlockIndex(nodeId);
+                searchWatch.Stop();
+
                 var state = 0;
 
                 do
@@ -152,8 +159,11 @@ namespace OSM_pbf_convert
 
                     if (lastBlockOffset != blockOffset)
                     {
+                        readerWatch.Start();
                         stream.Position = blockOffset;
                         stream.Read(buf, 0, buf.Length);
+                        readerWatch.Stop();
+                        
                         lastBlockOffset = blockOffset;
 
                         if (!continuation)
@@ -233,6 +243,8 @@ namespace OSM_pbf_convert
                     }
                 } while (state >= 0);
             }
+
+            Console.WriteLine($"Search time: ${searchWatch.Elapsed}, Read time: ${readerWatch.Elapsed}");
         }
 
         private int FindBlockIndex(long nodeId)
@@ -251,17 +263,12 @@ namespace OSM_pbf_convert
                 return h;
             }
 
+            var cnt = 0;
+
             while (h - l > 1)
             {
-                var i = (int)(nodeId * (h - l) / (hId - lId)) + l;
-                if (i <= l)
-                {
-                    i = l + 1;
-                }
-                else if (i >= h)
-                {
-                    i = h - 1;
-                }
+                cnt++;
+                var i = (h + l) >> 1;
 
                 var cId = index[i].Id;
 
@@ -273,12 +280,10 @@ namespace OSM_pbf_convert
                 if (nodeId > cId)
                 {
                     l = i;
-                    lId = cId;
                 }
                 else if (nodeId < cId)
                 {
                     h = i;
-                    hId = cId;
                 }
             }
 
