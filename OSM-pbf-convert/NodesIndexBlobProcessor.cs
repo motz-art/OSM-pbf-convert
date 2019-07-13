@@ -237,8 +237,6 @@ namespace OSM_pbf_convert
                 }
             }
         }
-
-        }
     }
 
     internal class MapIndexComparer : IComparer<MapNode>
