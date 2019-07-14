@@ -7,7 +7,7 @@ namespace OSM_pbf_convert
     {
         public static async Task Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length < 2)
             {
                 Console.WriteLine("Pbf action and file name is not specified.");
                 return;
@@ -32,7 +32,10 @@ namespace OSM_pbf_convert
 
             if (args[0] == "join")
             {
-                using (var indexer = PbfFileProcessor.Create(args[1], new NodesToWaysJoinProcessor(args[1], false)))
+                using (var indexer = PbfFileProcessor.Create(
+                    args[1], 
+                    new NodesToWaysJoinProcessor(args[1], true), 
+                    ulong.Parse(args[2])))
                 {
                     await indexer.Process();
                 }

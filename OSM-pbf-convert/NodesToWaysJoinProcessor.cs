@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
 {
@@ -36,6 +37,13 @@ namespace OSM_pbf_convert
 
         private readonly Stream waysStream;
         private readonly BinaryWriter waysWriter;
+
+        private readonly Stopwatch watch = new Stopwatch();
+
+        private List<OsmWay> waysBuf = new List<OsmWay>();
+        private HashSet<long> wayBufNodeIds = new HashSet<long>();
+
+        private int totalWayNodes;
 
         private long lastId;
         private long lastIndexId;
@@ -91,13 +99,14 @@ namespace OSM_pbf_convert
         {
             if (data == null) 
                 return;
-
-            Console.Write($"Nodes: {totalNodesCount}.\r");
+            watch.Start();
+            Console.Write($"Decode: {watch.Elapsed}. Nodes: {totalNodesCount}.\r");
 
             if (!nodesIndexLoad)
             {
                 foreach (var node in accessor.Nodes)
                 {
+                    watch.Stop();
                     totalNodesCount++;
 
                     var lat = CoordAsInt(node.Lat);
@@ -110,6 +119,8 @@ namespace OSM_pbf_convert
             }
 
             var ways = accessor.Ways.ToList();
+            watch.Stop();
+
             if (ways.Any())
             {
                 Console.WriteLine("Way!.");
@@ -118,18 +129,32 @@ namespace OSM_pbf_convert
                 indexWriter.Flush();
                 indexStream.Flush();
 
-                var allNodeIds = ways.SelectMany(x => x.NodeIds).Distinct().ToList();
-                allNodeIds.Sort();
+                waysBuf.AddRange(ways);
 
-                var watch = Stopwatch.StartNew();
-                var nodes = ReadAllNodesById(allNodeIds).ToDictionary(x => x.Id);
-                watch.Stop();
-                Console.WriteLine($"Found: {nodes.Count} withing: {watch.Elapsed}. Speed: {nodes.Count / watch.Elapsed.TotalSeconds}/s");
-
-                foreach (var osmWay in ways)
+                foreach (var id in ways.SelectMany(x => x.NodeIds))
                 {
-                    var wayNodes = osmWay.NodeIds.Select(x => nodes[x]);
-                    WriteWay(osmWay, wayNodes);
+                    totalWayNodes++;
+                    wayBufNodeIds.Add(id);
+                }
+
+                if (totalWayNodes >= 10_000_000)
+                {
+                    var watch = Stopwatch.StartNew();
+                    var nodes = ReadAllNodesById(wayBufNodeIds.OrderBy(x => x)).ToDictionary(x => x.Id);
+                    
+                    wayBufNodeIds.Clear();
+                    totalWayNodes = 0;
+
+                    watch.Stop();
+                    Console.WriteLine($"Found: {nodes.Count} withing: {watch.Elapsed}. Speed: {nodes.Count / watch.Elapsed.TotalSeconds}/s");
+
+                    foreach (var osmWay in waysBuf)
+                    {
+                        var wayNodes = osmWay.NodeIds.Select(x => nodes[x]);
+                        WriteWay(osmWay, wayNodes);
+                    }
+
+                    waysBuf.Clear();
                 }
             }
         }
@@ -147,7 +172,8 @@ namespace OSM_pbf_convert
 
             var searchWatch = new Stopwatch();
             var readerWatch = new Stopwatch();
-
+            var reads = 0;
+            var seek = 0;
 
             bool continuation = false;
 
@@ -166,7 +192,13 @@ namespace OSM_pbf_convert
                     if (lastBlockOffset != blockOffset)
                     {
                         readerWatch.Start();
-                        stream.Position = blockOffset;
+                        reads++;
+                        if (lastBlockOffset + BlockSize != blockOffset)
+                        {
+                            stream.Position = blockOffset;
+                            seek++;
+                        }
+
                         stream.Read(buf, 0, buf.Length);
                         readerWatch.Stop();
                         
@@ -250,7 +282,7 @@ namespace OSM_pbf_convert
                 } while (state >= 0);
             }
 
-            Console.WriteLine($"Search time: ${searchWatch.Elapsed}, Read time: ${readerWatch.Elapsed}");
+            Console.WriteLine($"Search time: ${searchWatch.Elapsed}, Read time: ${readerWatch.Elapsed}. ${reads}/${seek}.");
         }
 
         private int FindBlockIndex(long nodeId)
