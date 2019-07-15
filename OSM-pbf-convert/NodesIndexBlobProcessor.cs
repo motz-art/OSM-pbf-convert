@@ -11,7 +11,7 @@ namespace OSM_pbf_convert
         IBlobProcessor<string>,
         IDisposable
     {
-        private const int BufferLimit = 1_000_000;
+        private const int BufferLimit = 10_000_000;
         private readonly List<MapNode> buffer = new List<MapNode>(BufferLimit);
         private readonly List<List<int>> fileIds = new List<List<int>>();
         private readonly List<Task> mergeTasks = new List<Task>();

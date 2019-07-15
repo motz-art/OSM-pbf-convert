@@ -123,7 +123,7 @@ namespace OSM_pbf_convert
 
             if (ways.Any())
             {
-                Console.WriteLine("Way!.");
+                Console.Write("Way!.");
                 writer.Flush();
                 stream.Flush();
                 indexWriter.Flush();
@@ -137,7 +137,7 @@ namespace OSM_pbf_convert
                     wayBufNodeIds.Add(id);
                 }
 
-                if (totalWayNodes >= 10_000_000)
+                if (totalWayNodes >= 50_000_000)
                 {
                     var watch = Stopwatch.StartNew();
                     var nodes = ReadAllNodesById(wayBufNodeIds.OrderBy(x => x)).ToDictionary(x => x.Id);
@@ -344,7 +344,7 @@ namespace OSM_pbf_convert
             lastIndexId = 0;
             using (var reader = new BinaryReader(indexStream, Encoding.UTF8, true))
             {
-                while (stream.Position < stream.Length)
+                while (indexStream.Position < indexStream.Length)
                 {
                     var offset = reader.ReadByte();
                     if (offset == 255)
@@ -407,6 +407,8 @@ namespace OSM_pbf_convert
             var cid = (ulong) (way.Id - lastId);
             waysWriter.Write7BitEncodedInt(cid);
             lastId = way.Id;
+
+            waysWriter.Write7BitEncodedInt((ulong) nodes.Count());
 
             foreach (var node in nodes)
             {
