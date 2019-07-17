@@ -7,7 +7,7 @@ namespace OSM_pbf_convert
     public class HeatMapProcessor : IBlobProcessor<string>
     {
         private readonly string file;
-        private int[,] map = new int[1024,1024];
+        private int[,] map = new int[16384, 32768];
 
         public HeatMapProcessor(string file)
         {
@@ -23,8 +23,8 @@ namespace OSM_pbf_convert
         {
             foreach (var node in accessor.Nodes)
             {
-                var lat = (uint)(Helpers.CoordAsInt(node.Lat) + int.MaxValue) >> 22;
-                var lon = (uint)(Helpers.CoordAsInt(node.Lon) + int.MaxValue) >> 22;
+                var lat = (uint)(Helpers.CoordAsInt(node.Lat) + int.MaxValue) >> 18;
+                var lon = (uint)(Helpers.CoordAsInt(node.Lon) + int.MaxValue) >> 17;
 
                 map[lat, lon]++;
             }
