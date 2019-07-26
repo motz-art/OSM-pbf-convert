@@ -83,8 +83,6 @@ namespace OSM_pbf_convert
 
         public string BlobRead(Blob blob)
         {
-            Console.Write($"Offset: {blob.Header.StartPosition}. ");
-            
             if (nodesIndexLoad && blob.Header.StartPosition < 1700_000_000)
                 return null;
 
@@ -93,6 +91,7 @@ namespace OSM_pbf_convert
 
         public void Finish()
         {
+            MergeAndFlushWays();
         }
 
         public void ProcessPrimitives(PrimitiveAccessor accessor, string data)
@@ -123,7 +122,7 @@ namespace OSM_pbf_convert
 
             if (ways.Any())
             {
-                Console.Write("Way!.");
+                Console.Write($"Way! {totalWayNodes:#,###}. ");
                 writer.Flush();
                 stream.Flush();
                 indexWriter.Flush();
@@ -137,26 +136,32 @@ namespace OSM_pbf_convert
                     wayBufNodeIds.Add(id);
                 }
 
-                if (totalWayNodes >= 50_000_000)
+                if (totalWayNodes >= 10_000_000)
                 {
-                    var watch = Stopwatch.StartNew();
-                    var nodes = ReadAllNodesById(wayBufNodeIds.OrderBy(x => x)).ToDictionary(x => x.Id);
-                    
-                    wayBufNodeIds.Clear();
-                    totalWayNodes = 0;
-
-                    watch.Stop();
-                    Console.WriteLine($"Found: {nodes.Count} withing: {watch.Elapsed}. Speed: {nodes.Count / watch.Elapsed.TotalSeconds}/s");
-
-                    foreach (var osmWay in waysBuf)
-                    {
-                        var wayNodes = osmWay.NodeIds.Select(x => nodes[x]);
-                        WriteWay(osmWay, wayNodes);
-                    }
-
-                    waysBuf.Clear();
+                    MergeAndFlushWays();
                 }
             }
+        }
+
+        private void MergeAndFlushWays()
+        {
+            var watch = Stopwatch.StartNew();
+            var nodes = ReadAllNodesById(wayBufNodeIds.OrderBy(x => x)).ToDictionary(x => x.Id);
+
+            wayBufNodeIds.Clear();
+            totalWayNodes = 0;
+
+            watch.Stop();
+            Console.WriteLine(
+                $"Found: {nodes.Count} withing: {watch.Elapsed}. Speed: {nodes.Count / watch.Elapsed.TotalSeconds}/s");
+
+            foreach (var osmWay in waysBuf)
+            {
+                var wayNodes = osmWay.NodeIds.Select(x => nodes[x]).ToList();
+                WriteWay(osmWay, wayNodes);
+            }
+
+            waysBuf.Clear();
         }
 
         private IEnumerable<MapNode> ReadAllNodesById(IEnumerable<long> ids)
@@ -402,13 +407,13 @@ namespace OSM_pbf_convert
             lastLon = cLon;
         }
 
-        private void WriteWay(OsmWay way, IEnumerable<MapNode> nodes)
+        private void WriteWay(OsmWay way, IReadOnlyList<MapNode> nodes)
         {
             var cid = (ulong) (way.Id - lastId);
             waysWriter.Write7BitEncodedInt(cid);
             lastId = way.Id;
 
-            waysWriter.Write7BitEncodedInt((ulong) nodes.Count());
+            waysWriter.Write7BitEncodedInt((ulong) nodes.Count);
 
             foreach (var node in nodes)
             {

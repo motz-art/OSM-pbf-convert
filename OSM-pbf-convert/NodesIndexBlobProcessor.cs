@@ -259,34 +259,41 @@ namespace OSM_pbf_convert
         }
     }
 
-    internal class MapNode
+    public class MapNode
     {
         public long Id { get; set; }
         public int Lat { get; set; }
         public int Lon { get; set; }
 
-        public ulong BlockIndex
+        public ulong BlockIndex => CalcBlockIndex(Lat, Lon);
+
+        public static ulong CalcBlockIndex(double latitude, double longitude)
         {
-            get
+            var lat = Helpers.CoordAsInt(latitude);
+            var lon = Helpers.CoordAsInt(longitude);
+            return CalcBlockIndex(lat, lon);
+        }
+
+        public static ulong CalcBlockIndex(int latitude, int longitude)
+        {
+            ulong res = 0;
+            ulong mask = 1;
+            var lat = (ulong)latitude << 1;
+            var lon = (ulong)longitude;
+            for (var i = 0; i < 32; i++)
             {
-                ulong res = 0;
-                ulong mask = 1;
-                var lat = (ulong)Lat << 1;
-                var lon = (ulong)Lon;
-                for (var i = 0; i < 32; i++)
-                {
-                    res |= lon & mask;
-                    lon <<= 1;
-                    mask <<= 1;
+                res |= lon & mask;
+                lon <<= 1;
+                mask <<= 1;
 
 
-                    res |= lat & mask;
-                    lat <<= 1;
-                    mask <<= 1;
-                }
-
-                return res;
+                res |= lat & mask;
+                lat <<= 1;
+                mask <<= 1;
             }
+
+            return res;
+
         }
     }
 }

@@ -40,16 +40,17 @@ namespace OSM_pbf_convert
                     if (blob.Header.Type != "OSMData")
                         continue;
 
+                    Console.Write($"\rOffset: {blob.Header.StartPosition:#,###}, {waitWatch.Elapsed}/{watch.Elapsed}.");
                     var data = processor.BlobRead(blob);
 
                     var reader = PbfPrimitiveReader.Create(blob);
                     var accessor = new PrimitiveAccessor(reader);
                     
+                    accessor.StartRead();
+
                     waitWatch.Start();
                     pool.WaitOne();
                     waitWatch.Stop();
-
-                    Console.Write($"{waitWatch.Elapsed}/{watch.Elapsed}. ");
 
                     Task.Run(async () =>
                     {

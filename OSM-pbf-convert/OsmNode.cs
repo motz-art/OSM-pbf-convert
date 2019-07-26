@@ -1,10 +1,13 @@
-﻿namespace OSM_pbf_convert
+﻿using System.Collections.Generic;
+
+namespace OSM_pbf_convert
 {
     public class OsmNode
     {
         public long Id { get; set; }
         public double Lat { get; set; }
         public double Lon { get; set; }
+        public IReadOnlyList<OsmTag> Tags { get; set; }
 
         public OsmNode(long id, double lon, double lat)
         {

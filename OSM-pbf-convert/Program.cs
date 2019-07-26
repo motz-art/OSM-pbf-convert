@@ -41,7 +41,7 @@ namespace OSM_pbf_convert
                 }
             }
 
-            if (args[0] == "tst")
+            if (args[0] == "map-builder")
             {
                 Task.Run(() => MapBuilder.Process(args[1], args[1] + ".blobs.dat")).Wait();
             }
@@ -51,6 +51,30 @@ namespace OSM_pbf_convert
                 using (var indexer = PbfFileProcessor.Create(args[1], new HeatMapProcessor(args[1])))
                 {
                     await indexer.Process().ConfigureAwait(false);
+                }
+            }
+
+            if (args[0] == "tags")
+            {
+                using (var indexer = PbfFileProcessor.Create(args[1], new TagsProcessor(args[1] + ".tags")))
+                {
+                    await indexer.Process().ConfigureAwait(false);
+                }
+            }
+
+            if (args[0] == "spatial")
+            {
+                using (var indexer = PbfFileProcessor.Create(args[1], new SpatialProcessor()))
+                {
+                    await indexer.Process().ConfigureAwait(false);
+                }
+            }
+
+            if (args[0] == "ways-file")
+            {
+                using (var processor = new WaysFileProcessor(args[1] + ".ways.dat"))
+                {
+                    processor.Process();
                 }
             }
 

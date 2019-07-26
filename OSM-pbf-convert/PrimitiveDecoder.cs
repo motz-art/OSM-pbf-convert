@@ -23,9 +23,9 @@ namespace OSM_pbf_convert
             }
         }
 
-        private static IReadOnlyList<OsmTag> DecodeTags(long[] keys, long[] values, string[] strings)
+        private static IReadOnlyList<OsmTag> DecodeTags(IReadOnlyList<long> keys, IReadOnlyList<long> values, string[] strings)
         {
-            if ((keys == null || keys.Length == 0 ) && (values == null || values.Length == 0)) return Array.Empty<OsmTag>();
+            if ((keys == null || keys.Count == 0 ) && (values == null || values.Count == 0)) return Array.Empty<OsmTag>();
 
             if (strings == null && (keys != null && keys.Any() || values != null && values.Any()))
                 throw new InvalidOperationException("Can't decode tags! Strings are missing.");
@@ -35,7 +35,7 @@ namespace OSM_pbf_convert
 
             if (keys == null) throw new InvalidOperationException("Can't decode tags. keys are missing.");
 
-            var results = new OsmTag[keys.Length];
+            var results = new OsmTag[keys.Count];
             for (var i = 0; i < results.Length; i++)
             {
                 var key = strings[keys[i]];
@@ -71,11 +71,17 @@ namespace OSM_pbf_convert
                 .Where(denseNodes => denseNodes != null))
             {
                 var ids = denseNodes.Ids;
-                var latitudes = denseNodes.Latitudes;
-                var longitudes = denseNodes.Longitudes;
                 long prevId = 0;
+                
+                var latitudes = denseNodes.Latitudes;
                 long prevLat = 0;
+
+                var longitudes = denseNodes.Longitudes;
                 long prevLon = 0;
+
+
+                var tagIds = denseNodes.KeysValues;
+                var tagIndex = 0;
 
                 if (ids.Count != latitudes.Count || ids.Count != longitudes.Count)
                     throw new InvalidOperationException(
@@ -90,7 +96,22 @@ namespace OSM_pbf_convert
                     var lon = 0.000000001 * (data.LonOffset + data.Granularity * prevLon);
                     var lat = 0.000000001 * (data.LatOffset + data.Granularity * prevLat);
 
-                    var node = new OsmNode(prevId, lon, lat);
+                    var tags = new List<OsmTag>();
+
+                    while (tagIds[tagIndex] != 0)
+                    {
+                        var key = data.Strings[tagIds[tagIndex++]];
+                        var value = data.Strings[tagIds[tagIndex++]];
+                        tags.Add(new OsmTag(key, value));
+                    }
+
+                    tagIndex++;
+
+                    var node = new OsmNode(prevId, lon, lat)
+                    {
+                        Tags = tags
+                    };
+                    
 
                     yield return node;
                 }
@@ -109,9 +130,12 @@ namespace OSM_pbf_convert
 
         public static IEnumerable<OsmRelation> DecodeRelations(PrimitiveBlock data)
         {
-            return data.PrimitiveGroup.SelectMany(x => x.Relations).Select(x => new OsmRelation
+            if (data.PrimitiveGroup == null) return Enumerable.Empty<OsmRelation>();
+
+            return data.PrimitiveGroup.Where(x => x.Relations != null).SelectMany(x => x.Relations).Select(x => new OsmRelation
             {
-                Id = x.Id
+                Id = x.Id,
+                Tags = DecodeTags(x.Keys, x.Values, data.Strings)
             });
         }
     }
