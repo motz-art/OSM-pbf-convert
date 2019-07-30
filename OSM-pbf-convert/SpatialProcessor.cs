@@ -9,75 +9,9 @@ using ProtocolBuffers;
 
 namespace OSM_pbf_convert
 {
-    public class DeltaReader
-    {
-        private readonly BinaryReader reader;
-        private long lastSigned;
-
-        private ulong lastUnsigned;
-
-        public DeltaReader(BinaryReader reader)
-        {
-            this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
-        }
-
-        public void Reset()
-        {
-            lastSigned = 0;
-            lastUnsigned = 0;
-        }
-
-        public long ReadZigZag()
-        {
-            lastSigned += EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
-            return lastSigned;
-        }
-
-        public ulong ReadIncrementOnly()
-        {
-            lastUnsigned += reader.Read7BitEncodedInt();
-            return lastUnsigned;
-        }
-    }
-
-    public class DeltaWriter
-    {
-        private readonly BinaryWriter writer;
-
-        private ulong last;
-        private long lastSigned;
-
-        public DeltaWriter(BinaryWriter writer)
-        {
-            this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
-        }
-
-        public void Reset()
-        {
-            last = 0;
-            lastSigned = 0;
-        }
-
-        public void WriteZigZag(long value)
-        {
-            var diff = value - lastSigned;
-            writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(diff));
-            lastSigned = value;
-        }
-
-        public void WriteIncrementOnly(ulong value)
-        {
-            if (value < last) throw new ArgumentException("value should not decrement!");
-
-            var diff = value - last;
-            writer.Write7BitEncodedInt(diff);
-            last = value;
-        }
-    }
-
     public interface IMapObject
     {
-        ulong Id { get; }
+        long Id { get; }
         RelationMemberTypes Type { get; }
 
         int MidLat { get; }
@@ -90,7 +24,7 @@ namespace OSM_pbf_convert
 
     public class SNode : IMapObject
     {
-        public ulong Id { get; set; }
+        public long Id { get; set; }
         public RelationMemberTypes Type => RelationMemberTypes.Node;
         public int MidLat => Lat;
         public int MidLon => Lon;
@@ -102,7 +36,7 @@ namespace OSM_pbf_convert
 
     public class SWay : IMapObject
     {
-        public ulong Id { get; set; }
+        public long Id { get; set; }
         public int WayType { get; set; }
         public IList<WayNode> Nodes { get; set; }
         RelationMemberTypes IMapObject.Type => RelationMemberTypes.Way;
@@ -130,9 +64,9 @@ namespace OSM_pbf_convert
         public int Lon { get; set; }
     }
 
-    public class SpatialBlock
+    public class SpatialBlock : IDisposable
     {
-        private readonly string fileName;
+        public string FileName { get; }
 
         private readonly DeltaWriter nodeIdWriter;
         private readonly DeltaWriter nodeLatWriter;
@@ -157,10 +91,10 @@ namespace OSM_pbf_convert
 
         public SpatialBlock(string fileName)
         {
-            this.fileName = fileName;
+            FileName = fileName;
             var exists = File.Exists(fileName);
             Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-            stream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            stream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
             stream = new BufferedStream(stream, 65536);
             writer = new BinaryWriter(stream, Encoding.UTF8, true);
             reader = new BinaryReader(stream, Encoding.UTF8, true);
@@ -180,12 +114,22 @@ namespace OSM_pbf_convert
             if (exists) ReadLastNodeData();
         }
 
-        public BoundingRect BoundingRect { get; set; }
+        public BoundingRect BoundingRect { get; } = new BoundingRect();
 
         public int Size => nodesCount + waysCount + wayNodesCount;
 
         private void ReadLastNodeData()
         {
+            waysCount =52758;
+            var ways = ReadAllWays();
+            foreach (var sWay in ways)
+            {
+                foreach (var node in sWay.Nodes)
+                {
+                    BoundingRect.Extend(node.Lat, node.Lon);
+                }
+            }
+
             throw new NotImplementedException();
         }
 
@@ -218,7 +162,7 @@ namespace OSM_pbf_convert
             if (waysCount > 0) throw new InvalidOperationException("Can't write node after ways.");
             nodesCount++;
 
-            nodeIdWriter.WriteIncrementOnly(node.Id);
+            nodeIdWriter.WriteZigZag(node.Id);
             nodeLatWriter.WriteZigZag(node.Lat);
             nodeLonWriter.WriteZigZag(node.Lon);
         }
@@ -229,7 +173,7 @@ namespace OSM_pbf_convert
 
             waysCount++;
 
-            wayIdWriter.WriteIncrementOnly(way.Id);
+            wayIdWriter.WriteZigZag(way.Id);
             writer.Write7BitEncodedInt((ulong) way.WayType);
             writer.Write7BitEncodedInt((ulong) way.Nodes.Count);
 
@@ -242,6 +186,51 @@ namespace OSM_pbf_convert
                 wayLatWriter.WriteZigZag(node.Lat);
                 wayLonWriter.WriteZigZag(node.Lon);
             }
+        }
+
+        private SWay[] ReadAllWays()
+        {
+            var split = reader.ReadByte();
+            if (split != 0) throw new InvalidOperationException("Not all ways were read.");
+
+            wayIdReader.Reset();
+            wayLatReader.Reset();
+            wayLonReader.Reset();
+
+            var allWays = new SWay[waysCount];
+
+            for (var i = 0; i < allWays.Length; i++)
+            {
+                var id = wayIdReader.ReadZigZag();
+                var type = (int) reader.Read7BitEncodedInt();
+                var count = (int) reader.Read7BitEncodedInt();
+
+                wayLatReader.Reset();
+                wayLonReader.Reset();
+
+                var nodes = new List<WayNode>(count);
+                for (var j = 0; j < count; j++)
+                {
+                    var lat = (int) wayLatReader.ReadZigZag();
+                    var lon = (int) wayLonReader.ReadZigZag();
+
+                    nodes.Add(new WayNode(
+                        lat,
+                        lon
+                    ));
+                }
+
+                var way = new SWay
+                {
+                    Id = id,
+                    WayType = type,
+                    Nodes = nodes
+                };
+
+                allWays[i] = way;
+            }
+
+            return allWays;
         }
 
         public Split Split(string otherFileName)
@@ -291,10 +280,29 @@ namespace OSM_pbf_convert
 
         private void Clear()
         {
+            writer.Flush();
+            stream.Flush();
+
             stream.Position = 0;
             stream.SetLength(0);
 
+            BoundingRect.Reset();
+
+            nodeIdWriter.Reset();
+            nodeLatWriter.Reset();
+            nodeLonWriter.Reset();
+
+            wayIdWriter.Reset();
+            wayLatWriter.Reset();
+            wayLonWriter.Reset();
+
+            wayIdReader.Reset();
+            wayLatReader.Reset();
+            wayLonReader.Reset();
+
+            nodesCount = 0;
             waysCount = 0;
+            wayNodesCount = 0;
         }
 
         private static void AddAll(SpatialBlock other, IReadOnlyList<IMapObject> items, int start, int end)
@@ -319,12 +327,12 @@ namespace OSM_pbf_convert
             Flush();
             stream.Position = 0;
 
-            var id = 0UL;
+            var id = 0L;
             var lat = 0;
             var lon = 0;
             for (var i = 0; i < allNodes.Length; i++)
             {
-                var inc = reader.Read7BitEncodedInt();
+                var inc = EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
                 if (inc == 0) throw new InvalidOperationException("Unexpected end of nodes.");
                 id += inc;
                 lat += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
@@ -341,58 +349,29 @@ namespace OSM_pbf_convert
             return allNodes;
         }
 
-        private SWay[] ReadAllWays()
-        {
-            var split = reader.ReadByte();
-            if (split != 0) throw new InvalidOperationException("Not all ways were read.");
-
-            var allWays = new SWay[waysCount];
-
-            for (var i = 0; i < allWays.Length; i++)
-            {
-                var id = wayIdReader.ReadIncrementOnly();
-                var type = (int) reader.Read7BitEncodedInt();
-                var count = (int) reader.Read7BitEncodedInt();
-
-                var nodes = new List<WayNode>(count);
-                for (var j = 0; j < count; j++)
-                {
-                    var lat = (int) wayLatReader.ReadZigZag();
-                    var lon = (int) wayLonReader.ReadZigZag();
-
-                    nodes.Add(new WayNode(
-                        lat,
-                        lon
-                    ));
-                }
-
-                var way = new SWay
-                {
-                    Id = id,
-                    WayType = type,
-                    Nodes = nodes
-                };
-
-                allWays[i] = way;
-            }
-
-            return allWays;
-        }
-
         public override string ToString()
         {
             return
-                $"{fileName}: {Size} (${BoundingRect})";
+                $"{FileName}: {Size} (${BoundingRect})";
+        }
+
+        public void Dispose()
+        {
+            Flush();
+            reader?.Dispose();
+            writer?.Dispose();
+            stream?.Dispose();
         }
     }
 
-    public class SpatialIndex
+    public class SpatialIndex : IDisposable
     {
-        private const int BlockLimit = 10_000_000;
+        private const int BlockLimit = 100_000_000;
+        private const int ReducedBlockLimit = 1_000_000;
 
         private readonly Split root = new Split
         {
-            Block = new SpatialBlock("./Blocks/sp-0001.map")
+            Block = new SpatialBlock(GetFileName(1))
         };
 
         private int lastBlock = 1;
@@ -406,12 +385,76 @@ namespace OSM_pbf_convert
             if (split.Block.Size >= BlockLimit) SplitBlock(split);
         }
 
+        public void Add(SWay way)
+        {
+            var split = FindBlock(way);
+
+            split.Block.Add(way);
+
+            if (split.Block.Size >= BlockLimit) SplitBlock(split);
+        }
+
+        public void Finish()
+        {
+            SplitToReducedSize(root);
+            WriteSplitInfo();
+        }
+
+        private void SplitToReducedSize(Split split)
+        {
+            if (split.Block == null)
+            {
+                SplitToReducedSize(split.FirstChild);
+                SplitToReducedSize(split.SecondChild);
+            }
+            else
+            {
+                if (split.Block.Size > ReducedBlockLimit)
+                {
+                    SplitBlock(split);
+                    SplitToReducedSize(split);
+                }
+            }
+        }
+
+        private void WriteSplitInfo()
+        {
+            using (var stream = File.Open("./Blocks/split-info.dat", FileMode.Create, FileAccess.Write))
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                WriteSplitInfo(root, writer);
+            }
+
+        }
+        private void WriteSplitInfo(Split split, BinaryWriter writer)
+        {
+            if (split.Block == null)
+            {
+                writer.Write(split.SplitByLatitude ?(byte)1 : (byte)2);
+
+                if (!split.SplitValue.HasValue)
+                {
+                    throw new InvalidOperationException("Split must have SplitValue when no Block is defined.");
+                }
+
+                writer.Write(split.SplitValue.Value);
+                WriteSplitInfo(split.FirstChild, writer);
+                WriteSplitInfo(split.SecondChild, writer);
+            }
+            else
+            {
+                split.Block.Flush();
+                writer.Write((byte)0);
+                writer.Write(split.Block.FileName);
+            }
+        }
+
         private void SplitBlock(Split split)
         {
             var block = split.Block;
 
             lastBlock++;
-            var splitInfo = block.Split($"./Blocks/sp-{lastBlock:000}.map");
+            var splitInfo = block.Split(GetFileName(lastBlock));
 
             split.SplitByLatitude = splitInfo.SplitByLatitude;
             split.SplitValue = splitInfo.SplitValue;
@@ -420,19 +463,30 @@ namespace OSM_pbf_convert
             split.Block = null;
         }
 
-        private Split FindBlock(SNode node)
+        private static string GetFileName(int block)
+        {
+            return $"./Blocks/sp-{block:0000}.map";
+        }
+
+        private Split FindBlock(IMapObject obj)
         {
             var current = root;
             while (current.Block == null)
                 if (current.SplitByLatitude)
-                    current = node.Lat < current.SplitValue ? current.FirstChild : current.SecondChild;
+                    current = obj.MidLat < current.SplitValue ? current.FirstChild : current.SecondChild;
                 else
-                    current = node.Lon < current.SplitValue ? current.FirstChild : current.SecondChild;
+                    current = obj.MidLon < current.SplitValue ? current.FirstChild : current.SecondChild;
             return current;
+        }
+
+        public void Dispose()
+        {
+            WriteSplitInfo();
+            root?.Dispose();
         }
     }
 
-    public class Split
+    public class Split : IDisposable
     {
         public int? SplitValue { get; set; }
         public bool SplitByLatitude { get; set; }
@@ -445,6 +499,13 @@ namespace OSM_pbf_convert
             if (Block != null) return "Block: " + Block;
 
             return $"{(SplitByLatitude ? "Latitude" : "Longitude")}: {SplitValue}.";
+        }
+
+        public void Dispose()
+        {
+            Block?.Dispose();
+            FirstChild?.Dispose();
+            SecondChild?.Dispose();
         }
     }
 
@@ -467,7 +528,7 @@ namespace OSM_pbf_convert
                 totalCnt++;
                 var sNode = new SNode
                 {
-                    Id = (ulong) node.Id,
+                    Id = node.Id,
                     Lat = Helpers.CoordAsInt(node.Lat),
                     Lon = Helpers.CoordAsInt(node.Lon)
                 };

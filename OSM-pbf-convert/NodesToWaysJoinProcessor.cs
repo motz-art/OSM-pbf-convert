@@ -27,6 +27,8 @@ namespace OSM_pbf_convert
             }
         }
 
+        private SpatialIndex spatialIndex = new SpatialIndex();
+
         readonly List<NodesOffset> index = new List<NodesOffset>(1_000_000);
 
         private readonly Stream indexStream;
@@ -92,6 +94,8 @@ namespace OSM_pbf_convert
         public void Finish()
         {
             MergeAndFlushWays();
+
+            spatialIndex.Finish();
         }
 
         public void ProcessPrimitives(PrimitiveAccessor accessor, string data)
@@ -158,6 +162,7 @@ namespace OSM_pbf_convert
             foreach (var osmWay in waysBuf)
             {
                 var wayNodes = osmWay.NodeIds.Select(x => nodes[x]).ToList();
+                WriteWayToIndex(osmWay, wayNodes);
                 WriteWay(osmWay, wayNodes);
             }
 
@@ -405,6 +410,67 @@ namespace OSM_pbf_convert
             var cLon = node.Lon;
             writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(cLon - lastLon));
             lastLon = cLon;
+        }
+
+        private void WriteWayToIndex(OsmWay way, IReadOnlyList<MapNode> nodes)
+        {
+            var sway = new SWay
+            {
+                Id = way.Id,
+                WayType = GetWayType(way),
+                Nodes = nodes.Select(x => new WayNode(x.Lat, x.Lon)).ToList()
+            };
+
+            spatialIndex.Add(sway);
+        }
+
+        private int GetWayType(OsmWay way)
+        {
+            if (way.Tags == null)
+            {
+                return 1;
+            }
+            var tag = way.Tags.FirstOrDefault(x => x.Key.Equals("highway", StringComparison.OrdinalIgnoreCase));
+            if (tag != null)
+            {
+                switch (tag.Value.ToLowerInvariant())
+                {
+                    case "motorway": return 3;
+                    case "motorway_link": return 3;
+                    case "trunk": return 4;
+                    case "trunk_link": return 4;
+                    case "primary": return 5;
+                    case "primary_link": return 5;
+                    case "secondary": return 6;
+                    case "secondary_link": return 6;
+                    case "tertiary": return 7;
+                    case "tertiary_link": return 7;
+                    case "unclassified": return 8;
+                    case "residential": return 9;
+                    case "living_street": return 10;
+                    case "service": return 11;
+                    case "pedestrian": return 12;
+                    case "track": return 13;
+                    case "bus_guideway": return 14;
+                    case "escape": return 15;
+                    case "raceway": return 16;
+                    case "road": return 17;
+                    case "footway": return 18;
+                    case "steps": return 19;
+                    case "path": return 20;
+                    case "cycleway": return 21;
+                    case "bridleway": return 22;
+                    default: return 2;
+                }
+            }
+
+            tag = way.Tags.FirstOrDefault(x => x.Key.Equals("building", StringComparison.OrdinalIgnoreCase));
+            if (tag != null)
+            {
+                return 100;
+            }
+
+            return 1;
         }
 
         private void WriteWay(OsmWay way, IReadOnlyList<MapNode> nodes)

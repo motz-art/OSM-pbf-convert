@@ -81,5 +81,11 @@ namespace OSM_pbf_convert
             Console.WriteLine("Done!");
             Console.ReadKey();
         }
+
+        private static void Test()
+        {
+            var block = new SpatialBlock(@"C:\git\test-projects\OSM\MapView\Blocks\sp-0001.map");
+
+        }
     }
 }
