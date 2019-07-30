@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ProtocolBuffers;
 
 namespace OSM_pbf_convert
@@ -9,6 +10,8 @@ namespace OSM_pbf_convert
     {
         private readonly string fileName;
         private readonly List<BlobIdsInfo> infos = new List<BlobIdsInfo>();
+        private bool waysStarted = false;
+        private bool relationsStarted = false;
 
         public IdsIndexerBlobProcessor(string fileName)
         {
@@ -49,9 +52,20 @@ namespace OSM_pbf_convert
                     //nodesIndexWriter.Write(node.Id, lon, lat);
                 }
 
+                if (!waysStarted && accessor.Ways.Any())
+                {
+                    waysStarted = true;
+                    Console.WriteLine($"\r\nWays offset: {info.StartPosition}.");
+                }
                 foreach (var way in accessor.Ways)
                     waysCnt++;
 
+
+                if (!relationsStarted && accessor.Relations.Any())
+                {
+                    relationsStarted = true;
+                    Console.WriteLine($"\r\nRelations offset: {info.StartPosition}.");
+                }
                 foreach (var relation in accessor.Relations) relationCnt++;
 
                 info.MinNodeId = minId;
