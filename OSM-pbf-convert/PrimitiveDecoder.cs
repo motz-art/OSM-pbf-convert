@@ -135,8 +135,29 @@ namespace OSM_pbf_convert
             return data.PrimitiveGroup.Where(x => x.Relations != null).SelectMany(x => x.Relations).Select(x => new OsmRelation
             {
                 Id = x.Id,
+                Items = DecodeRelationItems(x, data),
                 Tags = DecodeTags(x.Keys, x.Values, data.Strings)
             });
+        }
+
+        private static IReadOnlyList<RelationItem> DecodeRelationItems(Relation relation, PrimitiveBlock data)
+        {
+            var strings = data.Strings;
+
+            var result = new List<RelationItem>(relation.MemberIds.Count);
+
+            for (int i = 0; i < relation.MemberIds.Count; i++)
+            {
+                var item = new RelationItem{
+                    Id = relation.MemberIds[i],
+                    MemberType = relation.MemberType[i],
+                    Role = strings[relation.Roles[i]]
+                };
+
+                result.Add(item);
+            }
+
+            return result;
         }
     }
 }

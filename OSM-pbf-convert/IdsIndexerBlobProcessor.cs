@@ -13,6 +13,11 @@ namespace OSM_pbf_convert
         private bool waysStarted = false;
         private bool relationsStarted = false;
 
+        private int maxMembersCount = 0;
+        private ulong totalMemberCount = 0;
+        private long totalRelsCount = 0;
+        private int[] memberCounts = new int[1000];
+
         public IdsIndexerBlobProcessor(string fileName)
         {
             this.fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
@@ -66,7 +71,37 @@ namespace OSM_pbf_convert
                     relationsStarted = true;
                     Console.WriteLine($"\r\nRelations offset: {info.StartPosition}.");
                 }
-                foreach (var relation in accessor.Relations) relationCnt++;
+
+                foreach (var relation in accessor.Relations)
+                {
+                    relationCnt++;
+                    totalRelsCount++;
+                    var itemsCount = relation.Items.Count;
+                    maxMembersCount = Math.Max(maxMembersCount, itemsCount);
+                    totalMemberCount += (ulong) itemsCount;
+
+                    if (itemsCount > 400)
+                    {
+                        itemsCount = 400;
+                    }
+                    if (itemsCount < memberCounts.Length)
+                    {
+                        memberCounts[itemsCount]++;
+                    }
+                }
+
+                Console.WriteLine($"\r\nMax Count: {maxMembersCount:#,###}. Avg: {1.0 * totalMemberCount / totalRelsCount}. Total: {totalRelsCount:#,###}.");
+
+                for (int i = 1; i <= 400; i++)
+                {
+                    Console.Write($"{i:000}: {memberCounts[i]:00000},  ");
+                    if (i % 10 == 0)
+                    {
+                        Console.WriteLine();
+                    }
+                }
+                Console.SetCursorPosition(0,0);
+
 
                 info.MinNodeId = minId;
                 info.MaxNodeId = maxId;
