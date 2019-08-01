@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using HuffmanCoding;
+using OsmReader;
+using OsmReader.PbfDataObjects;
 
 namespace OSM_pbf_convert
 {

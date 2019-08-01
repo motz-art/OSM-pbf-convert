@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HuffmanCoding;
+using OsmReader;
+using OsmReader.PbfDataObjects;
 using ProtocolBuffers;
 
 namespace OSM_pbf_convert

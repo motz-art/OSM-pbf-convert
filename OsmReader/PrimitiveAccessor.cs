@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace OSM_pbf_convert
+namespace OsmReader
 {
     public class PrimitiveAccessor
     {

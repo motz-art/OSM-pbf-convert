@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace OSM_pbf_convert
+﻿namespace OsmReader.PbfDataObjects
 {
     public class Way
     {

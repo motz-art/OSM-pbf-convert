@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HuffmanCoding\HuffmanCoding.csproj" />
+    <ProjectReference Include="..\OsmReader\OsmReader.csproj" />
     <ProjectReference Include="..\ProtobufMapper\ProtobufMapper.csproj" />
     <ProjectReference Include="..\ProtocolBuffers\ProtocolBuffers.csproj" />
   </ItemGroup>

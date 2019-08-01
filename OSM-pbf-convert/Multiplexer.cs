@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using OsmReader;
+using OsmReader.PbfDataObjects;
 
 namespace OSM_pbf_convert
 {

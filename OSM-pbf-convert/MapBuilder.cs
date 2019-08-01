@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using OsmReader;
 
 namespace OSM_pbf_convert
 {
@@ -24,7 +25,7 @@ namespace OSM_pbf_convert
         {
             var index = BlobIdsInfo.ReadIdsIndex(indexFileName).ToList();
             
-            Console.WriteLine($"Index size: {index.Count}");
+            Console.WriteLine($"DataAccessor size: {index.Count}");
 
             var cache = new CachedAccessor<long, Object>(new NullAccessor<long, Object>());
 

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OsmReader.PbfDataObjects;
 
-namespace OSM_pbf_convert
+namespace OsmReader
 {
     public class PrimitiveDecoder
     {
@@ -27,7 +28,7 @@ namespace OSM_pbf_convert
         {
             if ((keys == null || keys.Count == 0 ) && (values == null || values.Count == 0)) return Array.Empty<OsmTag>();
 
-            if (strings == null && (keys != null && keys.Any() || values != null && values.Any()))
+            if (strings == null && (keys != null && Enumerable.Any<long>(keys) || values != null && Enumerable.Any<long>(values)))
                 throw new InvalidOperationException("Can't decode tags! Strings are missing.");
 
 

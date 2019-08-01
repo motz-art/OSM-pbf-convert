@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using OsmReader;
+using OsmReader.PbfDataObjects;
 
 namespace OSM_pbf_convert
 {

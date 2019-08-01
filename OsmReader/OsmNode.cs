@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OSM_pbf_convert
+namespace OsmReader
 {
     public class OsmNode
     {
