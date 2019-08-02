@@ -1,5 +1,3 @@
-using System;
-
 static internal class Helpers
 {
     public static int CoordAsInt(double value)

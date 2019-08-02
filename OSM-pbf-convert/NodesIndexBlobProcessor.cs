@@ -241,26 +241,6 @@ namespace OSM_pbf_convert
         }
     }
 
-    internal class MapIndexComparer : IComparer<MapNode>
-    {
-        public int Compare(MapNode x, MapNode y)
-        {
-            var a = x.BlockIndex;
-            var b = y.BlockIndex;
-            if (a < b)
-            {
-                return -1;
-            }
-
-            if (a > b)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-    }
-
     public class MapNode
     {
         public long Id { get; set; }

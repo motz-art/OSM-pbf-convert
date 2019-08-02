@@ -35,8 +35,6 @@ namespace OSM_pbf_convert
                     await indexer.Process();
                 }
 
-            if (args[0] == "map-builder") Task.Run(() => MapBuilder.Process(args[1], args[1] + ".blobs.dat")).Wait();
-
             if (args[0] == "heat-map")
                 using (var indexer = PbfFileProcessor.Create(args[1], new HeatMapProcessor(args[1])))
                 {

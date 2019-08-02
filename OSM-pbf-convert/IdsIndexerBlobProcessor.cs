@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OsmReader;
 using OsmReader.PbfDataObjects;
-using ProtocolBuffers;
 
 namespace OSM_pbf_convert
 {
