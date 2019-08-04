@@ -22,6 +22,11 @@ namespace HuffmanCoding
             lastSigned = 0;
         }
 
+        public void WriteZigZag(ulong value)
+        {
+            WriteZigZag((long)value);
+        }
+
         public void WriteZigZag(long value)
         {
             var diff = value - lastSigned;

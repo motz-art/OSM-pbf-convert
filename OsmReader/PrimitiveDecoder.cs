@@ -75,10 +75,10 @@ namespace OsmReader
                 long prevId = 0;
                 
                 var latitudes = denseNodes.Latitudes;
-                long prevLat = 0;
+                long latData = 0;
 
                 var longitudes = denseNodes.Longitudes;
-                long prevLon = 0;
+                long lonData = 0;
 
 
                 var tagIds = denseNodes.KeysValues;
@@ -91,11 +91,11 @@ namespace OsmReader
                 for (var i = 0; i < ids.Count; i++)
                 {
                     prevId += ids[i];
-                    prevLon += longitudes[i];
-                    prevLat += latitudes[i];
+                    lonData += longitudes[i];
+                    latData += latitudes[i];
 
-                    var lon = 0.000000001 * (data.LonOffset + data.Granularity * prevLon);
-                    var lat = 0.000000001 * (data.LatOffset + data.Granularity * prevLat);
+                    var lon = 0.000000001 * (data.LonOffset + data.Granularity * lonData);
+                    var lat = 0.000000001 * (data.LatOffset + data.Granularity * latData);
 
                     var tags = new List<OsmTag>();
 

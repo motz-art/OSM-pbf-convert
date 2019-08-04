@@ -5,6 +5,10 @@ namespace HuffmanCoding
 {
     public static class StorageHelpers
     {
+        public static void Write7BitEncodedInt(this BinaryWriter writer, long val)
+        {
+            Write7BitEncodedInt(writer, (ulong)val);
+        }
         public static void Write7BitEncodedInt(this BinaryWriter writer, ulong val)
         {
             if (writer == null) throw new ArgumentNullException(nameof(writer));
@@ -62,6 +66,17 @@ namespace HuffmanCoding
             } while (b >= 0b1000_0000);
 
             return res;
+        }
+
+        public static void Skip7BitInt(this BinaryReader reader)
+        {
+            if (reader == null) throw new ArgumentNullException(nameof(reader));
+
+            byte b;
+            do
+            {
+                b = reader.ReadByte();
+            }while (b >= 0b1000_0000);
         }
 
         public static ulong Read7BitEncodedInt(this BufByteReader reader)

@@ -109,8 +109,6 @@ namespace OSM_pbf_convert
         public void Finish()
         {
             relationsFile.Flush();
-
-            relationsFile.Dispose();
         }
 
         public void Dispose()

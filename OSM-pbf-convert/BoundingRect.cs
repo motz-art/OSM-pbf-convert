@@ -4,13 +4,13 @@ namespace OSM_pbf_convert
 {
     public class BoundingRect
     {
-        public int MaxLat { get; private set; }
+        public int MaxLat { get; set; }
 
-        public int MinLat { get; private set; }
+        public int MinLat { get; set; }
 
-        public int MaxLon { get; private set; }
+        public int MaxLon { get; set; }
 
-        public int MinLon { get; private set; }
+        public int MinLon { get; set; }
         public int LatSize => MaxLat - MinLat;
         public int LonSize => MaxLon - MinLon;
 
