@@ -69,16 +69,6 @@ namespace OSM_pbf_convert
 
         private void ReadLastNodeData()
         {
-            waysCount =52758;
-            var ways = ReadAllWays();
-            foreach (var sWay in ways)
-            {
-                foreach (var node in sWay.Nodes)
-                {
-                    BoundingRect.Extend(node.Lat, node.Lon);
-                }
-            }
-
             throw new NotImplementedException();
         }
 
