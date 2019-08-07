@@ -7,7 +7,7 @@ namespace ProtobufMapper
 {
     public class Mapper<T> where T : new()
     {
-        readonly Dictionary<ulong, PropertyReader<T>> propertyReaders;
+        private readonly Dictionary<ulong, PropertyReader<T>> propertyReaders;
 
         internal Mapper(Dictionary<ulong, PropertyReader<T>> propertyReaders)
         {

@@ -11,7 +11,7 @@ namespace ProtobufMapper
 {
     public class MapGenerator
     {
-        readonly Dictionary<Type, MapTypeConfiguration> typeConfigurations = new Dictionary<Type, MapTypeConfiguration>();
+        private readonly Dictionary<Type, MapTypeConfiguration> typeConfigurations = new Dictionary<Type, MapTypeConfiguration>();
 
         public MapTypeConfiguration<T> Configure<T>()
         {

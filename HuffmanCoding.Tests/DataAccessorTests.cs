@@ -6,7 +6,7 @@ namespace HuffmanCoding.Tests
     [TestFixture]
     public class DataAccessorTests
     {
-        class Dto
+        private class Dto
         {
             public int Id { get; set; }
         }

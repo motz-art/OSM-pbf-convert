@@ -7,13 +7,13 @@ namespace HuffmanCoding
     public class BufByteReader : IDisposable
     {
         private readonly Stream stream;
-        
-        const int size = 64 * 1024;
-        
-        byte[] curBuf = new byte[size];
+
+        private const int size = 64 * 1024;
+
+        private byte[] curBuf = new byte[size];
         private int curLength;
-        
-        byte[] tmpBuf = new byte[size];
+
+        private byte[] tmpBuf = new byte[size];
         private int tmpLength;
 
         private int bufPosition;

@@ -9,10 +9,10 @@ namespace HuffmanCoding
         private Stream stream;
 
         private const int BufSize = 64 * 1024;
-        byte[] buf = new byte[BufSize];
+        private byte[] buf = new byte[BufSize];
         private int position = 0;
 
-        byte[] tmp = new byte[BufSize];
+        private byte[] tmp = new byte[BufSize];
         private Task writeTask;
 
         public BufByteWriter(Stream stream)

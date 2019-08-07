@@ -9,8 +9,8 @@ namespace OSM_pbf_convert
 {
     public class PbfBlobParser
     {
-        readonly ProtobufReader reader;
-        readonly long fileLength;
+        private readonly ProtobufReader reader;
+        private readonly long fileLength;
         private readonly Mapper<BlobHeader> blobHeaderMapper;
         private readonly Mapper<Blob> blobMapper;
 
@@ -24,7 +24,7 @@ namespace OSM_pbf_convert
             blobMapper = generator.CreateMapper<Blob>();
         }
 
-        static MapGenerator CreateMaps()
+        private static MapGenerator CreateMaps()
         {
             var generator = new MapGenerator();
             generator.Configure<BlobHeader>()
