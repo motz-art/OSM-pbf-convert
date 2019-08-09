@@ -358,7 +358,7 @@ namespace OsmReader
                             result.Roles.AddRange(reader.ReadPackedInt64Array());
                             break;
                         case 9:
-                            result.MemberIds.AddRange(reader.ReadPackedInt64Array());
+                            result.MemberIds.AddRange(reader.ReadPackedSInt64Array());
                             break;
                         case 10:
                             result.MemberType.AddRange(reader.ReadPackedInt64Array().Select(x => (RelationMemberTypes)x));

@@ -85,11 +85,6 @@ namespace OSM_pbf_convert
         public void Dispose()
         {
             stream?.Dispose();
-
-            if (processor != null && processor is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
         }
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Text;
 using HuffmanCoding;
 using ProtocolBuffers;
@@ -10,7 +11,7 @@ namespace OSM_pbf_convert
 {
     public class NodesIndex : IDisposable
     {
-        struct NodesOffset
+        private struct NodesOffset
         {
             public long Id { get; set; }
             public byte Offset { get; set; }
@@ -22,7 +23,7 @@ namespace OSM_pbf_convert
         }
 
         private const long BlockSize = 4096;
-        readonly List<NodesOffset> index = new List<NodesOffset>(1_000_000);
+        private readonly List<NodesOffset> index = new List<NodesOffset>(1_000_000);
 
         private long lastId;
         private int lastLat;
@@ -36,6 +37,7 @@ namespace OSM_pbf_convert
         private readonly Stream indexStream;
         private readonly BinaryWriter indexWriter;
 
+        private readonly MemoryMappedFile memFile;
         private readonly Stream stream;
         private readonly BinaryWriter writer;
 
@@ -46,9 +48,13 @@ namespace OSM_pbf_convert
 
             if (canLoad && File.Exists(indexFileName))
             {
-                stream = new FileStream(nodesFileName, 
-                    FileMode.Open, FileAccess.ReadWrite, FileShare.None, 
-                    (int)BlockSize, FileOptions.SequentialScan);
+                memFile = MemoryMappedFile.CreateFromFile(nodesFileName, FileMode.Open, "nodes.dat");
+
+                stream = memFile.CreateViewStream();
+
+//                stream = new FileStream(nodesFileName, 
+//                    FileMode.Open, FileAccess.ReadWrite, FileShare.None, 
+//                    (int)BlockSize, FileOptions.SequentialScan);
 
                 writer = new BinaryWriter(stream, Encoding.UTF8, true);
                 indexStream = File.Open(indexFileName, FileMode.Open);
@@ -141,6 +147,7 @@ namespace OSM_pbf_convert
 
         public IEnumerable<MapNode> ReadAllNodesById(IEnumerable<long> ids)
         {
+            // ToDo: rewrite this, with potentially using mem mapped files.
             var buf = new byte[BlockSize];
             var lastBlockOffset = -1L;
 
@@ -156,6 +163,8 @@ namespace OSM_pbf_convert
             var seek = 0;
 
             bool continuation = false;
+
+            var bufLength = 0;
 
             foreach (var nodeId in ids)
             {
@@ -179,8 +188,13 @@ namespace OSM_pbf_convert
                             seek++;
                         }
 
-                        stream.Read(buf, 0, buf.Length);
+                        bufLength = stream.Read(buf, 0, buf.Length);
                         readerWatch.Stop();
+
+                        if (bufLength == 0)
+                        {
+                            yield break;
+                        }
 
                         lastBlockOffset = blockOffset;
 
@@ -201,7 +215,7 @@ namespace OSM_pbf_convert
                         lLon = 0;
                     }
 
-                    while (state >= 0 && offset < buf.Length)
+                    while (state >= 0 && offset < bufLength)
                     {
                         var b = buf[offset];
                         offset++;

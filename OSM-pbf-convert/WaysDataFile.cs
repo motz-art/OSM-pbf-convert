@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Text;
 using HuffmanCoding;
 using ProtocolBuffers;
@@ -9,7 +11,7 @@ namespace OSM_pbf_convert
 {
     public class WaysDataFile : IDisposable
     {
-        struct WayInfoOffset
+        private struct WayInfoOffset
         {
             public ulong Id { get; set; }
             public long Offset { get; set; }
@@ -24,34 +26,54 @@ namespace OSM_pbf_convert
         private readonly DeltaWriter lonWriter;
 
         private readonly Stream infoStream;
+        private MemoryMappedFile infoFile;
+        private MemoryMappedViewAccessor infoAccessor;
+        private MemoryMappedViewStream infoMemStream;
+        private long infoLength;
+
         private readonly BinaryWriter infoWriter;
-        private BinaryReader infoReader;
+        private readonly BinaryReader infoReader;
 
         private ulong totalWaysCount;
-        private const int offsetsLimit = 1_000_000;
-        private ulong skip = 8;
-        List<WayInfoOffset> offsets = new List<WayInfoOffset>(offsetsLimit);
+        private const int OffsetsLimit = 1_000_000;
+        private ulong skip = 50;
+        private readonly List<WayInfoOffset> offsets = new List<WayInfoOffset>(OffsetsLimit);
 
         public WaysDataFile(string fileName)
         {
             var exists = File.Exists(fileName);
+            var indexFileName = fileName + ".idx";
             if (!exists)
             {
                 waysStream = File.Open(fileName, FileMode.Create);
-                waysWriter = new BinaryWriter(waysStream, Encoding.UTF8, true);
-
-                idWriter = new DeltaWriter(waysWriter);
-                nodeIdWriter = new DeltaWriter(waysWriter);
-                latWriter = new DeltaWriter(waysWriter);
-                lonWriter = new DeltaWriter(waysWriter);
-
-                infoStream = File.Open(fileName + ".idx", FileMode.Create);
-                infoWriter = new BinaryWriter(infoStream, Encoding.UTF8, true);
-                infoReader = new BinaryReader(infoStream, Encoding.UTF8, true);
+                infoStream = File.Open(indexFileName, FileMode.Create);
             }
             else
             {
-                throw new NotImplementedException();
+                waysStream = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, 
+                    FileShare.None, 4096, FileOptions.RandomAccess);
+//
+//                infoStream = new FileStream(indexFileName, FileMode.Open, FileAccess.ReadWrite,
+//                    FileShare.None, 65536, FileOptions.SequentialScan);
+            
+                infoFile = MemoryMappedFile.CreateFromFile(indexFileName, FileMode.Open, "waysIndex");
+                infoStream = infoFile.CreateViewStream();
+            }
+            waysWriter = new BinaryWriter(waysStream, Encoding.UTF8, true);
+
+            idWriter = new DeltaWriter(waysWriter);
+            nodeIdWriter = new DeltaWriter(waysWriter);
+            latWriter = new DeltaWriter(waysWriter);
+            lonWriter = new DeltaWriter(waysWriter);
+
+            infoWriter = new BinaryWriter(infoStream, Encoding.UTF8, true);
+            infoReader = new BinaryReader(infoStream, Encoding.UTF8, true);
+
+            if (exists)
+            {
+                var info = new FileInfo(indexFileName);
+                infoLength = info.Length;
+                ReadOffsets();
             }
         }
 
@@ -62,6 +84,7 @@ namespace OSM_pbf_convert
 
             infoWriter?.Dispose();
             infoStream?.Dispose();
+            infoFile?.Dispose();
         }
 
         public void WriteWay(SWay way)
@@ -71,21 +94,21 @@ namespace OSM_pbf_convert
 
             WriteWayData(way);
 
-            AddOffsetsIndex(way);
+            AddOffsetsIndex((ulong) way.Id, infoStream.Position);
             WriteWayInfo(way);
         }
 
-        private void AddOffsetsIndex(SWay way)
+        private void AddOffsetsIndex(ulong wayId, long offset)
         {
             totalWaysCount++;
             if (totalWaysCount % skip == skip - 1)
             {
                 offsets.Add(new WayInfoOffset
                 {
-                    Id = (ulong) way.Id,
-                    Offset = infoStream.Position
+                    Id = wayId,
+                    Offset = offset
                 });
-                if (offsets.Count >= offsetsLimit)
+                if (offsets.Count >= OffsetsLimit)
                 {
                     skip += skip;
                     int j = 0;
@@ -109,6 +132,35 @@ namespace OSM_pbf_convert
             waysStream.Flush();
         }
 
+        private void ReadOffsets()
+        {
+            var watch = Stopwatch.StartNew();
+            long nextShow = 300;
+            long cnt = 0;
+
+            while (infoStream.Position < infoLength)
+            {
+                if (watch.ElapsedMilliseconds >= nextShow)
+                {
+                    nextShow += 100;
+                    Console.Write($"{infoStream.Position:0,000}. Read: {infoStream.Position/watch.ElapsedMilliseconds:0,000} KB/s, Qty: {cnt/watch.Elapsed.TotalSeconds:0,000}/s.    \r");
+                }
+
+                cnt++;
+                var offset = infoStream.Position;
+                var wayId = infoReader.Read7BitEncodedInt();
+
+                AddOffsetsIndex(wayId, offset);
+
+                infoReader.ReadInt64(); // Skip 8 bytes;
+                infoReader.Skip7BitInt();
+                infoReader.Skip7BitInt();
+                infoReader.Skip7BitInt();
+                infoReader.Skip7BitInt();
+            }
+
+        }
+
         public WayInfo FindWayInfo(ulong id)
         {
             var offsetIndex = FindBlockIndex(id);
@@ -118,7 +170,7 @@ namespace OSM_pbf_convert
             infoStream.Position = offset;
 
 
-            var offsetLimit = offsetIndex < offsets.Count - 1 ? offsets[offsetIndex + 1].Offset : infoStream.Length;
+            var offsetLimit = offsetIndex < offsets.Count - 1 ? offsets[offsetIndex + 1].Offset : infoLength;
             while (infoStream.Position < offsetLimit)
             {
                 var cid = infoReader.Read7BitEncodedInt();
@@ -141,7 +193,8 @@ namespace OSM_pbf_convert
                         {
                             MinLat = minLat,
                             MinLon = minLon,
-                            MaxLat = maxLat
+                            MaxLat = maxLat,
+                            MaxLon = maxLon
                         }
                     };
                 }
@@ -168,6 +221,8 @@ namespace OSM_pbf_convert
 
             infoWriter.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(rect.MaxLat - way.MidLat));
             infoWriter.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(rect.MaxLon - way.MidLon));
+
+            infoLength = infoStream.Position;
         }
 
 

@@ -147,10 +147,13 @@ namespace OsmReader
 
             var result = new List<RelationItem>(relation.MemberIds.Count);
 
+            var id = 0L;
+
             for (int i = 0; i < relation.MemberIds.Count; i++)
             {
+                id += relation.MemberIds[i];
                 var item = new RelationItem{
-                    Id = relation.MemberIds[i],
+                    Id = id,
                     MemberType = relation.MemberType[i],
                     Role = strings[relation.Roles[i]]
                 };

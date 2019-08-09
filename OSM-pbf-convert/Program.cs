@@ -63,8 +63,19 @@ namespace OSM_pbf_convert
                 using (var processor = new RelationsProcessor(args[1]))
                 using (var fileProcessor = PbfFileProcessor.Create(args[1], processor, ulong.Parse(args[3])))
                 {
-                    await fileProcessor.Process();
+                    await fileProcessor.Process().ConfigureAwait(false);
                 }
+
+            if (args[0] == "tags-stat")
+            {
+                using (var processor = new TagStatsProcessor(args[1]))
+                {
+                    using (var fileProcessor = PbfFileProcessor.Create(args[1], processor))
+                    {
+                        await fileProcessor.Process().ConfigureAwait(false);
+                    }
+                }
+            }
 
             Console.WriteLine("Done!");
             Console.ReadKey();

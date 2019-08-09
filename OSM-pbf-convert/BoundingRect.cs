@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using ProtocolBuffers;
+using HuffmanCoding;
 
 namespace OSM_pbf_convert
 {
@@ -65,6 +68,17 @@ namespace OSM_pbf_convert
         {
             return
                 $"Lat: {Helpers.IntToCoord(MinLat):#.####} / {Helpers.IntToCoord(MaxLat):#.####} x Lon: {Helpers.IntToCoord(MinLon):#.####} / {Helpers.IntToCoord(MaxLon):#.####}";
+        }
+    }
+
+    public static class BoundingRectReadWriteHelper
+    {
+        public static void WriteTo(this BoundingRect rect, BinaryWriter writer)
+        {
+            writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(rect.MinLat));
+            writer.Write7BitEncodedInt(EncodeHelpers.EncodeZigZag(rect.MinLon));
+            writer.Write7BitEncodedInt(rect.MaxLat - rect.MinLat);
+            writer.Write7BitEncodedInt(rect.MaxLon - rect.MinLon);
         }
     }
 }

@@ -1,4 +1,3 @@
-using ProtocolBuffers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,16 +42,24 @@ namespace OSM_pbf_convert
         {
             MergeAndFlushWays();
 
+            waysDataFile.Flush();
             spatialIndex.Finish();
         }
 
         public void ProcessPrimitives(PrimitiveAccessor accessor, string data)
         {
-            if (data == null)
-                return;
+            if (data == null) return;
+            if (accessor == null) throw new ArgumentNullException(nameof(accessor));
+
             watch.Start();
             Console.Write($"Decode: {watch.Elapsed}. Nodes: {totalNodesCount}.\r");
 
+            ProcessNodes(accessor);
+            ProcessWays(accessor);
+        }
+
+        private void ProcessNodes(PrimitiveAccessor accessor)
+        {
             foreach (var node in accessor.Nodes)
             {
                 watch.Stop();
@@ -61,11 +68,14 @@ namespace OSM_pbf_convert
                 var lat = Helpers.CoordAsInt(node.Lat);
                 var lon = Helpers.CoordAsInt(node.Lon);
 
-                var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
+                var mNode = new MapNode {Id = node.Id, Lat = lat, Lon = lon};
 
                 nodesIndex.WriteNode(mNode);
             }
+        }
 
+        private void ProcessWays(PrimitiveAccessor accessor)
+        {
             var ways = accessor.Ways.ToList();
             watch.Stop();
 
