@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OsmReader;
 
 namespace OSM_pbf_convert
@@ -12,5 +13,6 @@ namespace OSM_pbf_convert
         public BoundingRect Rect => new BoundingRect().Extend(Lat, Lon);
         public int Lat { get; set; }
         public int Lon { get; set; }
+        public List<STagInfo> Tags { get; set; }
     }
 }

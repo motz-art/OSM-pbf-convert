@@ -2,7 +2,7 @@
   "profiles": {
     "OSM-pbf-convert": {
       "commandName": "Project",
-      "commandLineArgs": "merge-rel c:\\temp\\OSM\\germany-latest.osm.pbf 1789998615 3112350024"
+      "commandLineArgs": "tags-stat c:\\temp\\OSM\\germany-latest.osm.pbf 1789998615 3112350024"
     }
   }
 }

@@ -60,6 +60,7 @@ namespace OSM_pbf_convert
 
         public void Finish()
         {
+            WriteTmpData();
             throw new NotImplementedException();
         }
 

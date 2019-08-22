@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using HuffmanCoding;
 using OsmReader;
 using OsmReader.PbfDataObjects;
 
@@ -13,6 +12,8 @@ namespace OSM_pbf_convert
     public class TagStatsProcessor : IBlobProcessor<string>, IDisposable
     {
         public Dictionary<string, long> tagValuesStat = new Dictionary<string, long>();
+        private long totalLength = 0;
+        private long totalTagsCount = 0;
         private string fileName;
         private Stopwatch watch;
         private long nextShow = 1000;
@@ -88,7 +89,7 @@ namespace OSM_pbf_convert
                 }
             }
 
-            Console.Write($" Count: ${tagValuesStat.Count:0,000}.                  \r");
+            Console.Write($" Count: {tagValuesStat.Count:0,000}. Total: {totalTagsCount:0,000}. Length: {totalLength:0,000}.                 \r");
 
             if (watch.ElapsedMilliseconds > nextShow)
             {
@@ -106,7 +107,7 @@ namespace OSM_pbf_convert
             foreach (var pair in top)
             {
                 Console.Write($"{pair.Value.ToString("0,000").PadLeft(8)}:{pair.Key.PadRight(30).Substring(0, 30)} ");
-                if (Console.CursorLeft > 160)
+                if (Console.CursorLeft > Console.WindowWidth - 42)
                 {
                     Console.WriteLine();
                 }
@@ -118,6 +119,7 @@ namespace OSM_pbf_convert
         {
             if (tagValuesStat.Count < 10_000_000)
                 return;
+
             var keysToRemove = new List<string>();
             foreach (var pair in tagValuesStat)
             {
@@ -137,6 +139,9 @@ namespace OSM_pbf_convert
 
         private void AddTag(OsmTag tag)
         {
+            totalLength += tag.Key.Length + tag.Value.Length;
+            totalTagsCount++;
+
             var key = $"{tag.Key} ### {tag.Value}";
             if (!tagValuesStat.TryGetValue(key, out var count))
             {
@@ -162,12 +167,34 @@ namespace OSM_pbf_convert
             using (var writer = new BinaryWriter(statsFile, Encoding.UTF8, true))
             {
                 writer.Write(tagValuesStat.Count);
-                foreach (var tag in tagValuesStat.OrderByDescending(x => x.Value))
+                foreach (var tag in tagValuesStat.OrderByDescending(x => x.Value).ThenBy(x => x.Key))
                 {
                     writer.Write(tag.Key);
-                    writer.Write7BitEncodedInt(tag.Value);
+                    writer.Write(tag.Value);
                 }
             }
+        }
+
+        public Dictionary<string, int> ReadStats(string fileName, int minCount = 10)
+        {
+            var res = new Dictionary<string, int>();
+            using (var statsFile = File.Open(fileName, FileMode.Open, FileAccess.Read))
+            using (var reader = new BinaryReader(statsFile, Encoding.UTF8, true))
+            {
+                var totalCount = reader.ReadInt32();
+                for (int i = 0; i < totalCount; i++)
+                {
+                    var key = reader.ReadString();
+                    var cnt = reader.ReadInt64();
+                    if (cnt < minCount)
+                    {
+                        return res;
+                    }
+                    res.Add(key, i);
+                }
+            }
+
+            return res;
         }
     }
 }

@@ -9,6 +9,8 @@ namespace OSM_pbf_convert
         public long Id { get; set; }
         public int WayType { get; set; }
         public IList<WayNode> Nodes { get; set; }
+        public IList<STagInfo> Tags { get; set; }
+
         RelationMemberTypes IMapObject.Type => RelationMemberTypes.Way;
 
         public int MidLat => (int) Nodes.Average(x => x.Lat);
