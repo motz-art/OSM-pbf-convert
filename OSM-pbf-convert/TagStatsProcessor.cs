@@ -102,13 +102,17 @@ namespace OSM_pbf_convert
 
         private void ShowTop()
         {
-            var top = tagValuesStat.Where(x => x.Value > 1000).OrderByDescending(x => x.Value).Take(250);
+            var top = tagValuesStat.Where(x => x.Value > 100).OrderByDescending(x => x.Value).Take(400);
             Console.WriteLine();
             foreach (var pair in top)
             {
-                Console.Write($"{pair.Value.ToString("0,000").PadLeft(8)}:{pair.Key.PadRight(30).Substring(0, 30)} ");
-                if (Console.CursorLeft > Console.WindowWidth - 42)
+                Console.Write($"{pair.Value.ToString("0,000").PadLeft(8)}:{pair.Key.PadRight(24).Substring(0, 24)} ");
+                if (Console.CursorLeft > Console.WindowWidth - 36)
                 {
+                    if (Console.CursorTop >= Console.WindowHeight)
+                    {
+                        break;
+                    }
                     Console.WriteLine();
                 }
             }
@@ -139,10 +143,10 @@ namespace OSM_pbf_convert
 
         private void AddTag(OsmTag tag)
         {
-            totalLength += tag.Key.Length + tag.Value.Length;
+            totalLength += tag.Key.Length;
             totalTagsCount++;
 
-            var key = $"{tag.Key} ### {tag.Value}";
+            var key = $"{tag.Key}";
             if (!tagValuesStat.TryGetValue(key, out var count))
             {
                 count = 0;
