@@ -15,7 +15,6 @@ namespace OSM_pbf_convert
 
         public int MidLat => (int) Nodes.Average(x => x.Lat);
         public int MidLon => (int) Nodes.Average(x => x.Lon);
-        public int Size => 2 + Nodes.Count;
 
         public BoundingRect Rect => Nodes.Aggregate(new BoundingRect(), (rect, node) =>
         {

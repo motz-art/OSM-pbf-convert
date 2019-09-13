@@ -11,6 +11,10 @@ namespace OSM_pbf_convert
 {
     public struct RelationLocation : IEquatable<RelationLocation>
     {
+        public long Id { get; set; }
+
+        public long Offset { get; set; }
+
         public bool Equals(RelationLocation other)
         {
             return Id == other.Id && Offset == other.Offset;
@@ -38,9 +42,6 @@ namespace OSM_pbf_convert
         {
             return !left.Equals(right);
         }
-
-        public long Id { get; set; }
-        public long Offset { get; set; }
     }
 
     public class RelationsFile : IDisposable

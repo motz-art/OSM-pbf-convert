@@ -9,9 +9,5 @@ namespace OSM_pbf_convert
 
         int MidLat { get; }
         int MidLon { get; }
-
-        int Size { get; }
-
-        BoundingRect Rect { get; }
     }
 }

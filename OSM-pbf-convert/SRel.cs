@@ -5,13 +5,15 @@ namespace OSM_pbf_convert
 {
     public class SRel : IMapObject
     {
-        public long Id { get; }
-        public IList<STagInfo> Tags { get; set; }
+        public long Id { get; set; }
+
+        public RelationMemberTypes ItemType { get; set; }
+        public long ItemId { get; set; }
+
+        public int RelType { get; set; }
 
         public RelationMemberTypes Type => RelationMemberTypes.Relation;
-        public int MidLat { get; }
-        public int MidLon { get; }
-        public int Size { get; }
-        public BoundingRect Rect { get; }
+        public int MidLat { get; set; }
+        public int MidLon { get; set; }
     }
 }

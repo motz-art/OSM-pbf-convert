@@ -36,6 +36,15 @@ namespace OSM_pbf_convert
         private int wayNodesCount;
         private int waysCount;
 
+        private readonly DeltaWriter relIdWriter;
+        private readonly DeltaWriter relLatWriter;
+        private readonly DeltaWriter relLonWriter;
+        private readonly DeltaReader relIdReader;
+        private readonly DeltaReader relLatReader;
+        private readonly DeltaReader relLonReader;
+
+        private int relsCount;
+
         public SpatialBlock(string fileName)
         {
             FileName = fileName;
@@ -60,12 +69,20 @@ namespace OSM_pbf_convert
             wayLatReader = new DeltaReader(reader);
             wayLonReader = new DeltaReader(reader);
 
+            relIdWriter = new DeltaWriter(writer);
+            relLatWriter = new DeltaWriter(writer);
+            relLonWriter = new DeltaWriter(writer);
+
+            relIdReader = new DeltaReader(reader);
+            relLatReader = new DeltaReader(reader);
+            relLonReader = new DeltaReader(reader);
+
             if (exists) ReadLastNodeData();
         }
 
         public BoundingRect BoundingRect { get; } = new BoundingRect();
 
-        public int Size => nodesCount + waysCount + wayNodesCount;
+        public int Size => nodesCount + waysCount + wayNodesCount + relsCount;
 
         private void ReadLastNodeData()
         {
@@ -90,6 +107,28 @@ namespace OSM_pbf_convert
             WriteWay(way);
         }
 
+        public void Add(SRel rel)
+        {
+            WriteRel(rel);
+        }
+
+        private void WriteRel(SRel rel)
+        {
+            if (relsCount == 0)
+            {
+                writer.Write((byte) 0);
+            }
+
+            relsCount++;
+
+            relIdWriter.WriteZigZag(rel.Id);
+            writer.Write7BitEncodedInt((int)rel.Type);
+            relLatWriter.WriteZigZag(rel.MidLat);
+            relLatWriter.WriteZigZag(rel.MidLon);
+            writer.Write7BitEncodedInt((int)rel.ItemType);
+            writer.Write7BitEncodedInt(rel.ItemId);
+        }
+
         public void Flush()
         {
             writer.Flush();
@@ -99,15 +138,52 @@ namespace OSM_pbf_convert
         private void WriteNode(SNode node)
         {
             if (waysCount > 0) throw new InvalidOperationException("Can't write node after ways.");
+            if (relsCount > 0) throw new InvalidOperationException("Can't write node after relations.");
             nodesCount++;
 
             nodeIdWriter.WriteZigZag(node.Id);
             nodeLatWriter.WriteZigZag(node.Lat);
             nodeLonWriter.WriteZigZag(node.Lon);
+
+            WriteTags(node.Tags);
+        }
+
+        private void WriteTags(IList<STagInfo> tags)
+        {
+            writer.Write7BitEncodedInt(tags?.Count ?? 0);
+            if (tags != null)
+            {
+                foreach (var tagInfo in tags)
+                {
+                    if (tagInfo.TagId.HasValue)
+                    {
+                        writer.Write((byte) 1);
+                        writer.Write7BitEncodedInt(tagInfo.TagId.Value);
+                    }
+                    else if (tagInfo.KeyId.HasValue && tagInfo.Value != null)
+                    {
+                        writer.Write((byte) 2);
+                        writer.Write7BitEncodedInt(tagInfo.KeyId.Value);
+                        writer.Write(tagInfo.Value);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(tagInfo.Key) && tagInfo.Value != null)
+                    {
+                        writer.Write((byte) 3);
+                        writer.Write(tagInfo.Key);
+                        writer.Write(tagInfo.Value);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Invalid value of STagInfo.");
+                    }
+                }
+            }
         }
 
         private void WriteWay(SWay way)
         {
+            if (relsCount > 0) throw new InvalidOperationException("Can't write way after relations.");
+
             if (waysCount == 0) writer.Write((byte) 0);
 
             waysCount++;
@@ -127,12 +203,14 @@ namespace OSM_pbf_convert
                 wayLatWriter.WriteZigZag(node.Lat);
                 wayLonWriter.WriteZigZag(node.Lon);
             }
+
+            WriteTags(way.Tags);
         }
 
         private SWay[] ReadAllWays()
         {
             var split = reader.ReadByte();
-            if (split != 0) throw new InvalidOperationException("Not all ways were read.");
+            if (split != 0) throw new InvalidOperationException("Not all nodes were read.");
 
             wayIdReader.Reset();
             wayNodeIdReader.Reset();
@@ -145,24 +223,7 @@ namespace OSM_pbf_convert
             {
                 var id = wayIdReader.ReadZigZag();
                 var type = (int) reader.Read7BitEncodedInt();
-                var count = (int) reader.Read7BitEncodedInt();
-
-                wayLatReader.Reset();
-                wayLonReader.Reset();
-
-                var nodes = new List<WayNode>(count);
-                for (var j = 0; j < count; j++)
-                {
-                    var nodeId = (ulong) wayNodeIdReader.ReadZigZag();
-                    var lat = (int) wayLatReader.ReadZigZag();
-                    var lon = (int) wayLonReader.ReadZigZag();
-
-                    nodes.Add(new WayNode(
-                        nodeId,
-                        lat,
-                        lon
-                    ));
-                }
+                var nodes = ReadWayNodes();
 
                 var way = new SWay
                 {
@@ -177,6 +238,64 @@ namespace OSM_pbf_convert
             return allWays;
         }
 
+        private IEnumerable<IMapObject> ReadAllRels()
+        {
+            var split = reader.ReadByte();
+            if (split != 0) throw new InvalidOperationException("Not all ways were read.");
+
+            relIdReader.Reset();
+            relLatReader.Reset();
+            relLonReader.Reset();
+
+            var allRels = new SRel[relsCount];
+
+            for (int i = 0; i < allRels.Length; i++)
+            {
+                var id = relIdReader.ReadZigZag();
+                var type = (int) reader.Read7BitEncodedInt();
+                var lat = relLatReader.ReadZigZag();
+                var lon = relLonReader.ReadZigZag();
+                var itemType = (int) reader.Read7BitEncodedInt();
+                var itemId = (long) reader.Read7BitEncodedInt();
+
+                allRels[i] = new SRel
+                {
+                    Id = id,
+                    RelType = type,
+                    MidLat = (int)lat,
+                    MidLon = (int)lon,
+                    ItemType = (RelationMemberTypes) itemType,
+                    ItemId = itemId
+                };
+            }
+
+            return allRels;
+        }
+
+        private List<WayNode> ReadWayNodes()
+        {
+            var count = (int) reader.Read7BitEncodedInt();
+
+            wayLatReader.Reset();
+            wayLonReader.Reset();
+
+            var nodes = new List<WayNode>(count);
+            for (var j = 0; j < count; j++)
+            {
+                var nodeId = (ulong) wayNodeIdReader.ReadZigZag();
+                var lat = (int) wayLatReader.ReadZigZag();
+                var lon = (int) wayLonReader.ReadZigZag();
+
+                nodes.Add(new WayNode(
+                    nodeId,
+                    lat,
+                    lon
+                ));
+            }
+
+            return nodes;
+        }
+
         public SpatialSplitInfo Split(string otherFileName)
         {
             var latSize = BoundingRect.LatSize;
@@ -184,9 +303,11 @@ namespace OSM_pbf_convert
 
             var allNodes = ReadAllNodes();
             var allWays = ReadAllWays();
-            var allItems = new List<IMapObject>(nodesCount + waysCount);
+            var allRels = ReadAllRels();
+            var allItems = new List<IMapObject>(nodesCount + waysCount + relsCount);
             allItems.AddRange(allNodes);
             allItems.AddRange(allWays);
+            allItems.AddRange(allRels);
 
             Comparison<IMapObject> comparison;
             var splitByLatitude = latSize >= lonSize;
@@ -246,23 +367,38 @@ namespace OSM_pbf_convert
             wayLatReader.Reset();
             wayLonReader.Reset();
 
+            relIdWriter.Reset();
+            relLatWriter.Reset();
+            relLonWriter.Reset();
+
+            relIdReader.Reset();
+            relLatReader.Reset();
+            relLonReader.Reset();
+
             nodesCount = 0;
             waysCount = 0;
             wayNodesCount = 0;
+            relsCount = 0;
         }
 
-        private static void AddAll(SpatialBlock other, IReadOnlyList<IMapObject> items, int start, int end)
+        private static void AddAll(SpatialBlock block, IReadOnlyList<IMapObject> items, int start, int end)
         {
             for (var i = start; i < end; i++)
             {
                 if (items[i].Type != RelationMemberTypes.Node) continue;
-                other.Add((SNode)items[i]);
+                block.Add((SNode)items[i]);
             }
 
             for (var i = start; i < end; i++)
             {
                 if (items[i].Type != RelationMemberTypes.Way) continue;
-                other.Add((SWay)items[i]);
+                block.Add((SWay)items[i]);
+            }
+
+            for (var i = start; i < end; i++)
+            {
+                if (items[i].Type != RelationMemberTypes.Relation) continue;
+                block.Add((SRel)items[i]);
             }
         }
 
@@ -284,15 +420,48 @@ namespace OSM_pbf_convert
                 lat += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
                 lon += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
 
+                var tags = ReadTags();
+
                 allNodes[i] = new SNode
                 {
                     Id = id,
                     Lat = lat,
-                    Lon = lon
+                    Lon = lon,
+                    Tags = tags
                 };
             }
 
             return allNodes;
+        }
+
+        private List<STagInfo> ReadTags()
+        {
+            var count = (int)reader.Read7BitEncodedInt();
+            var tags = new List<STagInfo>(count);
+
+            for (var i = 0; i < count; i++)
+            {
+                var type = reader.ReadByte();
+                var tag = new STagInfo();
+                switch (type)
+                {
+                    case 1:
+                        tag.TagId = (int)reader.Read7BitEncodedInt();
+                        break;
+                    case 2:
+                        tag.KeyId = (int) reader.Read7BitEncodedInt();
+                        tag.Value = reader.ReadString();
+                        break;
+                    case 3:
+                        tag.Key = reader.ReadString();
+                        tag.Value = reader.ReadString();
+                        break;
+                    default:
+                        throw new NotSupportedException($"Tag encoding type '{type}' at position {reader.BaseStream.Position - 1} is not supported.");
+                }
+            }
+
+            return tags;
         }
 
         public override string ToString()
