@@ -34,6 +34,15 @@ namespace OSM_pbf_convert
             if (split.Block.Size >= BlockLimit) SplitBlock(split);
         }
 
+        public void Add(SRel rel)
+        {
+            var split = FindBlock(rel);
+
+            split.Block.Add(rel);
+
+            if (split.Block.Size >= BlockLimit) SplitBlock(split);
+        }
+
         public void Finish()
         {
             SplitToReducedSize(root);
