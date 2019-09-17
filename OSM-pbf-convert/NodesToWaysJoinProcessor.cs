@@ -170,8 +170,8 @@ namespace OSM_pbf_convert
             var sway = new SWay
             {
                 Id = way.Id,
-                WayType = GetWayType(way),
-                Nodes = nodes.Select(x => new WayNode((ulong) x.Id, x.Lat, x.Lon)).ToList()
+                Type = GetWayType(way),
+                Nodes = nodes.Select(x => new WayNode((ulong)x.Id, x.Lat, x.Lon)).ToList()
             };
             return sway;
         }

@@ -122,7 +122,7 @@ namespace OSM_pbf_convert
             relsCount++;
 
             relIdWriter.WriteZigZag(rel.Id);
-            writer.Write7BitEncodedInt((int)rel.Type);
+            writer.Write7BitEncodedInt((int)rel.ObjectType);
             relLatWriter.WriteZigZag(rel.MidLat);
             relLatWriter.WriteZigZag(rel.MidLon);
             writer.Write7BitEncodedInt((int)rel.ItemType);
@@ -385,19 +385,19 @@ namespace OSM_pbf_convert
         {
             for (var i = start; i < end; i++)
             {
-                if (items[i].Type != RelationMemberTypes.Node) continue;
+                if (items[i].ObjectType != RelationMemberTypes.Node) continue;
                 block.Add((SNode)items[i]);
             }
 
             for (var i = start; i < end; i++)
             {
-                if (items[i].Type != RelationMemberTypes.Way) continue;
+                if (items[i].ObjectType != RelationMemberTypes.Way) continue;
                 block.Add((SWay)items[i]);
             }
 
             for (var i = start; i < end; i++)
             {
-                if (items[i].Type != RelationMemberTypes.Relation) continue;
+                if (items[i].ObjectType != RelationMemberTypes.Relation) continue;
                 block.Add((SRel)items[i]);
             }
         }

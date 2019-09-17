@@ -12,7 +12,7 @@ namespace OSM_pbf_convert
 
         public int RelType { get; set; }
 
-        public RelationMemberTypes Type => RelationMemberTypes.Relation;
+        public RelationMemberTypes ObjectType => RelationMemberTypes.Relation;
         public int MidLat { get; set; }
         public int MidLon { get; set; }
     }

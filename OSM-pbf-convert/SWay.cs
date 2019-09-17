@@ -7,11 +7,11 @@ namespace OSM_pbf_convert
     public class SWay : IMapObject
     {
         public long Id { get; set; }
-        public int WayType { get; set; }
+        public int Type { get; set; }
         public IList<WayNode> Nodes { get; set; }
         public IList<STagInfo> Tags { get; set; }
 
-        RelationMemberTypes IMapObject.Type => RelationMemberTypes.Way;
+        RelationMemberTypes IMapObject.ObjectType => RelationMemberTypes.Way;
 
         public int MidLat => (int) Nodes.Average(x => x.Lat);
         public int MidLon => (int) Nodes.Average(x => x.Lon);
