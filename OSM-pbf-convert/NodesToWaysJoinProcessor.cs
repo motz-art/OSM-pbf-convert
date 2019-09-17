@@ -68,10 +68,25 @@ namespace OSM_pbf_convert
                 var lat = Helpers.CoordAsInt(node.Lat);
                 var lon = Helpers.CoordAsInt(node.Lon);
 
-                var mNode = new MapNode {Id = node.Id, Lat = lat, Lon = lon};
+                var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
 
                 nodesIndex.WriteNode(mNode);
+                var sNode = new SNode
+                {
+                    Id = mNode.Id,
+                    Lat = mNode.Lat,
+                    Lon = mNode.Lon,
+                    Tags = ConvertTags(node.Tags)
+                };
+                spatialIndex.Add(sNode);
             }
+        }
+
+        private List<STagInfo> ConvertTags(IReadOnlyList<OsmTag> nodeTags)
+        {
+            var result = new List<STagInfo>();
+
+            return result;
         }
 
         private void ProcessWays(PrimitiveAccessor accessor)
