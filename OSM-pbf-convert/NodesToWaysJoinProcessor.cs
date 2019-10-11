@@ -26,9 +26,11 @@ namespace OSM_pbf_convert
         private long totalNodesCount;
         private long maxDiff;
         private long maxDiffId;
+        private TagsConverter tagsConverter = new TagsConverter();
 
         public NodesToWaysJoinProcessor(string fileName, bool canLoad)
         {
+            tagsConverter.LoadSettings("./tags-map.json");
             waysDataFile = new WaysDataFile(fileName + ".ways.dat");
             nodesIndex = new NodesIndex(fileName, canLoad);
         }
@@ -71,22 +73,30 @@ namespace OSM_pbf_convert
                 var mNode = new MapNode { Id = node.Id, Lat = lat, Lon = lon };
 
                 nodesIndex.WriteNode(mNode);
-                var sNode = new SNode
+                var tags = ConvertNodeTags(node.Tags);
+
+                if (tags.Any())
                 {
-                    Id = mNode.Id,
-                    Lat = mNode.Lat,
-                    Lon = mNode.Lon,
-                    Tags = ConvertTags(node.Tags)
-                };
-                spatialIndex.Add(sNode);
+                    var sNode = new SNode
+                    {
+                        Id = mNode.Id,
+                        Lat = mNode.Lat,
+                        Lon = mNode.Lon,
+                        Tags = tags
+                    };
+                    spatialIndex.Add(sNode);
+                }
             }
         }
 
-        private List<STagInfo> ConvertTags(IReadOnlyList<OsmTag> nodeTags)
+        private List<STagInfo> ConvertNodeTags(IReadOnlyList<OsmTag> nodeTags)
         {
-            var result = new List<STagInfo>();
+            return tagsConverter.ConvertNodeTags(nodeTags);
+        }
 
-            return result;
+        private List<STagInfo> ConvertWayTags(IReadOnlyList<OsmTag> nodeTags)
+        {
+            return tagsConverter.ConvertWayTags(nodeTags);
         }
 
         private void ProcessWays(PrimitiveAccessor accessor)
@@ -171,7 +181,8 @@ namespace OSM_pbf_convert
             {
                 Id = way.Id,
                 Type = GetWayType(way),
-                Nodes = nodes.Select(x => new WayNode((ulong)x.Id, x.Lat, x.Lon)).ToList()
+                Nodes = nodes.Select(x => new WayNode((ulong)x.Id, x.Lat, x.Lon)).ToList(),
+                Tags = ConvertWayTags(way.Tags)
             };
             return sway;
         }

@@ -30,7 +30,8 @@ namespace OSM_pbf_convert
                 using (var indexer = PbfFileProcessor.Create(
                     args[1],
                     new NodesToWaysJoinProcessor(args[1], true),
-                    ulong.Parse(args[2])))
+                     0 //ulong.Parse(args[2])
+                    ))
                 {
                     await indexer.Process();
                 }
@@ -79,11 +80,6 @@ namespace OSM_pbf_convert
 
             Console.WriteLine("Done!");
             Console.ReadKey();
-        }
-
-        private static void Test()
-        {
-            var block = new SpatialBlock(@"C:\git\test-projects\OSM\MapView\Blocks\sp-0001.map");
         }
     }
 }

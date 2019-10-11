@@ -19,16 +19,16 @@ namespace HuffmanCoding
             this.comparer = comparer;
         }
 
-        public int Split(IList<T> list, int tolerance = 0)
+        public int Split(IList<T> list, int tolerance = 0, int? firstItem = null, int? lastItem = null)
         {
             if (list == null)
             {
                 throw new ArgumentNullException(nameof(list));
             }
 
-            var begin = 0;
-            var end = list.Count - 1;
-            var mid = list.Count / 2;
+            var begin = firstItem ?? 0;
+            var end = lastItem ?? list.Count - 1;
+            var mid = (end + begin + 1) / 2;
             var res = begin;
 
             while (end - begin > 1)

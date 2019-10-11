@@ -4,17 +4,35 @@ using System.Text;
 
 namespace OSM_pbf_convert
 {
+    public class NameGenerator
+    {
+        public int Counter { get; set; }
+
+        public string GetNextFileName()
+        {
+            Counter++;
+            return $"./Blocks/sp-{Counter:0000}.map";
+        }
+    }
+
     public class SpatialIndex : IDisposable
     {
-        private const int BlockLimit = 100_000_000;
-        private const int ReducedBlockLimit = 100_000_000;
+        private const int BlockLimit = 20_000_000;
+        private const int ReducedBlockLimit = 10_000;
+        private const string SplitInfoFileName = "./Blocks/spatial-split-info.dat";
 
-        private readonly SpatialSplitInfo root = new SpatialSplitInfo
+        private readonly NameGenerator generatror = new NameGenerator();
+
+        private readonly SpatialSplitInfo root;
+
+        public SpatialIndex()
         {
-            Block = new SpatialBlock(GetFileName(1))
-        };
-
-        private int lastBlock = 1;
+            root = new SpatialSplitInfo
+            {
+                Block = new SpatialBlock(generatror.GetNextFileName())
+            };
+            root = ReadSplitInfo();
+        }
 
         public void Add(SNode node)
         {
@@ -22,7 +40,7 @@ namespace OSM_pbf_convert
 
             split.Block.Add(node);
 
-            if (split.Block.Size >= BlockLimit) SplitBlock(split);
+            if (split.Block.Size >= BlockLimit) SplitBlock(split, BlockLimit / 16);
         }
 
         public void Add(SWay way)
@@ -31,7 +49,7 @@ namespace OSM_pbf_convert
 
             split.Block.Add(way);
 
-            if (split.Block.Size >= BlockLimit) SplitBlock(split);
+            if (split.Block.Size >= BlockLimit) SplitBlock(split, BlockLimit / 16);
         }
 
         public void Add(SRel rel)
@@ -40,7 +58,7 @@ namespace OSM_pbf_convert
 
             split.Block.Add(rel);
 
-            if (split.Block.Size >= BlockLimit) SplitBlock(split);
+            if (split.Block.Size >= BlockLimit) SplitBlock(split, BlockLimit / 16);
         }
 
         public void Finish()
@@ -60,20 +78,58 @@ namespace OSM_pbf_convert
             {
                 if (spatialSplitInfo.Block.Size > ReducedBlockLimit)
                 {
-                    SplitBlock(spatialSplitInfo);
+                    SplitBlock(spatialSplitInfo, ReducedBlockLimit);
                     SplitToReducedSize(spatialSplitInfo);
                 }
+                else
+                {
+                    spatialSplitInfo.Block.Flush();
+                }
+            }
+        }
+
+        private SpatialSplitInfo ReadSplitInfo()
+        {
+            if (!File.Exists(SplitInfoFileName)) return root;
+            using (var stream = File.Open(SplitInfoFileName, FileMode.Open, FileAccess.Read))
+            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
+            {
+                return ReadSplitInfo(reader);
             }
         }
 
         private void WriteSplitInfo()
         {
-            using (var stream = File.Open("./Blocks/spatial-split-info.dat", FileMode.Create, FileAccess.Write))
+            using (var stream = File.Open(SplitInfoFileName, FileMode.Create, FileAccess.Write))
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
                 WriteSplitInfo(root, writer);
             }
 
+        }
+
+        private SpatialSplitInfo ReadSplitInfo(BinaryReader reader)
+        {
+            var type = reader.ReadByte();
+            var result = new SpatialSplitInfo();
+            if (type == 1 || type == 2)
+            {
+                result.SplitByLatitude = (type == 1);
+                result.SplitValue = reader.ReadInt32();
+                result.FirstChild = ReadSplitInfo(reader);
+                result.SecondChild = ReadSplitInfo(reader);
+            }
+            else if (type == 0)
+            {
+                var fileName = reader.ReadString();
+                result.Block = new SpatialBlock(fileName);
+            }
+            else
+            {
+                throw new InvalidOperationException("Can't read split info. Unknown type.");
+            }
+
+            return result;
         }
         private void WriteSplitInfo(SpatialSplitInfo spatialSplitInfo, BinaryWriter writer)
         {
@@ -98,12 +154,11 @@ namespace OSM_pbf_convert
             }
         }
 
-        private void SplitBlock(SpatialSplitInfo spatialSplitInfo)
+        private void SplitBlock(SpatialSplitInfo spatialSplitInfo, int size)
         {
             var block = spatialSplitInfo.Block;
 
-            lastBlock++;
-            var splitInfo = block.Split(GetFileName(lastBlock));
+            var splitInfo = block.Split(generatror, size);
 
             spatialSplitInfo.SplitByLatitude = splitInfo.SplitByLatitude;
             spatialSplitInfo.SplitValue = splitInfo.SplitValue;
@@ -112,10 +167,6 @@ namespace OSM_pbf_convert
             spatialSplitInfo.Block = null;
         }
 
-        private static string GetFileName(int block)
-        {
-            return $"./Blocks/sp-{block:0000}.map";
-        }
 
         private SpatialSplitInfo FindBlock(IMapObject obj)
         {

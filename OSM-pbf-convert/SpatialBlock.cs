@@ -86,7 +86,7 @@ namespace OSM_pbf_convert
 
         private void ReadLastNodeData()
         {
-            throw new NotImplementedException();
+            // var items = ReadAllItems(); // ????
         }
 
         public bool CanAdd(IMapObject item)
@@ -102,13 +102,15 @@ namespace OSM_pbf_convert
 
         public void Add(SWay way)
         {
-            foreach (var node in way.Nodes) BoundingRect.Extend(node.Lat, node.Lon);
+            BoundingRect.Extend(way.MidLat, way.MidLon);
 
             WriteWay(way);
         }
 
         public void Add(SRel rel)
         {
+            BoundingRect.Extend(rel.MidLat, rel.MidLon);
+
             WriteRel(rel);
         }
 
@@ -127,6 +129,8 @@ namespace OSM_pbf_convert
             relLatWriter.WriteZigZag(rel.MidLon);
             writer.Write7BitEncodedInt((int)rel.ItemType);
             writer.Write7BitEncodedInt(rel.ItemId);
+
+            WriteTags(rel.Tags);
         }
 
         public void Flush()
@@ -189,7 +193,7 @@ namespace OSM_pbf_convert
             waysCount++;
 
             wayIdWriter.WriteZigZag(way.Id);
-            writer.Write7BitEncodedInt((ulong) way.WayType);
+            writer.Write7BitEncodedInt((ulong) way.Type);
             writer.Write7BitEncodedInt((ulong) way.Nodes.Count);
 
             wayNodeIdWriter.Reset();
@@ -209,64 +213,65 @@ namespace OSM_pbf_convert
 
         private SWay[] ReadAllWays()
         {
-            var split = reader.ReadByte();
-            if (split != 0) throw new InvalidOperationException("Not all nodes were read.");
-
             wayIdReader.Reset();
             wayNodeIdReader.Reset();
             wayLatReader.Reset();
             wayLonReader.Reset();
 
-            var allWays = new SWay[waysCount];
+            var allWays = new List<SWay>(waysCount);
 
-            for (var i = 0; i < allWays.Length; i++)
+            while (stream.Position < stream.Length)
             {
+                var lastStart = stream.Position;
                 var id = wayIdReader.ReadZigZag();
+                if (id == 0) break;
                 var type = (int) reader.Read7BitEncodedInt();
                 var nodes = ReadWayNodes();
+                var tags = ReadTags();
 
                 var way = new SWay
                 {
                     Id = id,
-                    WayType = type,
-                    Nodes = nodes
+                    Type = type,
+                    Nodes = nodes,
+                    Tags =  tags
                 };
 
-                allWays[i] = way;
+                allWays.Add(way);
             }
 
-            return allWays;
+            return allWays.ToArray();
         }
 
         private IEnumerable<IMapObject> ReadAllRels()
         {
-            var split = reader.ReadByte();
-            if (split != 0) throw new InvalidOperationException("Not all ways were read.");
-
             relIdReader.Reset();
             relLatReader.Reset();
             relLonReader.Reset();
 
-            var allRels = new SRel[relsCount];
+            var allRels = new List<SRel>(relsCount);
 
-            for (int i = 0; i < allRels.Length; i++)
+            while(stream.Position < stream.Length)
             {
                 var id = relIdReader.ReadZigZag();
+                if (id == 0) break;
                 var type = (int) reader.Read7BitEncodedInt();
                 var lat = relLatReader.ReadZigZag();
                 var lon = relLonReader.ReadZigZag();
                 var itemType = (int) reader.Read7BitEncodedInt();
                 var itemId = (long) reader.Read7BitEncodedInt();
+                var tags = ReadTags();
 
-                allRels[i] = new SRel
+                allRels.Add(new SRel
                 {
                     Id = id,
                     RelType = type,
                     MidLat = (int)lat,
                     MidLon = (int)lon,
                     ItemType = (RelationMemberTypes) itemType,
-                    ItemId = itemId
-                };
+                    ItemId = itemId,
+                    Tags = tags
+                });
             }
 
             return allRels;
@@ -296,11 +301,104 @@ namespace OSM_pbf_convert
             return nodes;
         }
 
-        public SpatialSplitInfo Split(string otherFileName)
+        public SpatialSplitInfo Split(NameGenerator generator, int maxItemsCount)
         {
-            var latSize = BoundingRect.LatSize;
-            var lonSize = BoundingRect.LonSize;
+            if (generator == null) throw new ArgumentNullException(nameof(generator));
 
+            var _allItems = ReadAllItems();
+
+            var info = new SpatialSplitInfoExtended
+            {
+                Items = _allItems,
+                Start = 0,
+                End = _allItems.Count - 1,
+                BoundingRect = BoundingRect,
+            };
+
+
+            InMemorySplit(info, maxItemsCount);
+
+            Clear();
+
+            var spatialSplitInfo = SaveAllSpatialBlocks(this, info, generator).Result;
+
+            return spatialSplitInfo;
+        }
+
+        private static void InMemorySplit(SpatialSplitInfoExtended info, int maxItemsCount)
+        {
+            var latSize = info.BoundingRect.LatSize;
+            var lonSize = info.BoundingRect.LonSize;
+
+            info.SplitByLatitude = latSize >= lonSize;
+
+            Comparison<IMapObject> comparison;
+            if (info.SplitByLatitude)
+                comparison = (a, b) => a.MidLat - b.MidLat;
+            else
+                comparison = (a, b) => a.MidLon - b.MidLon;
+
+            var splitter = new QuickSortSplitter<IMapObject>(Comparer<IMapObject>.Create(comparison));
+            var position = splitter.Split(info.Items, info.Count / 100, info.Start, info.End);
+
+            info.SplitValue = info.SplitByLatitude ? info.Items[position].MidLat : info.Items[position].MidLon;
+
+            info.First = new SpatialSplitInfoExtended
+            {
+                Items = info.Items,
+                Start = info.Start,
+                End = position - 1
+            };
+
+            var first = info.First;
+            SplitIfRequired(maxItemsCount, first);
+
+            info.Second = new SpatialSplitInfoExtended
+            {
+                Items = info.Items,
+                Start = position,
+                End = info.End
+            };
+            SplitIfRequired(maxItemsCount, info.Second);
+        }
+
+        private static void SplitIfRequired(int maxItemsCount, SpatialSplitInfoExtended first)
+        {
+            if (first.GetSize() > maxItemsCount)
+            {
+                first.CalcBoundingRect();
+                InMemorySplit(first, maxItemsCount);
+            }
+        }
+
+        private static async Task<SpatialSplitInfo> SaveAllSpatialBlocks(SpatialBlock block, SpatialSplitInfoExtended info, NameGenerator generator)
+        {
+            if (info.First != null && info.Second != null)
+            {
+                var first = SaveAllSpatialBlocks(block, info.First, generator);
+                var second = SaveAllSpatialBlocks(new SpatialBlock(generator.GetNextFileName()), info.Second,
+                    generator);
+
+                return new SpatialSplitInfo{
+                    SplitByLatitude = info.SplitByLatitude,
+                    SplitValue = info.SplitValue,
+                    FirstChild = await first.ConfigureAwait(false),
+                    SecondChild = await second.ConfigureAwait(false)
+                };
+            }
+
+            await Task.Run(
+                    () => AddAll(block, info.Items, info.Start, info.End))
+                .ConfigureAwait(false);
+
+            return new SpatialSplitInfo
+            {
+                Block = block
+            };
+        }
+
+        private List<IMapObject> ReadAllItems()
+        {
             var allNodes = ReadAllNodes();
             var allWays = ReadAllWays();
             var allRels = ReadAllRels();
@@ -308,39 +406,7 @@ namespace OSM_pbf_convert
             allItems.AddRange(allNodes);
             allItems.AddRange(allWays);
             allItems.AddRange(allRels);
-
-            Comparison<IMapObject> comparison;
-            var splitByLatitude = latSize >= lonSize;
-            if (splitByLatitude)
-                comparison = (a, b) => a.MidLat - b.MidLat;
-            else
-                comparison = (a, b) => a.MidLon - b.MidLon;
-
-            var splitter = new QuickSortSplitter<IMapObject>(Comparer<IMapObject>.Create(comparison));
-            var position = splitter.Split(allItems, allItems.Count / 100);
-
-            var splitValue = splitByLatitude ? allItems[position].MidLat : allItems[position].MidLon;
-
-
-            var task = Task.Run(() =>
-            {
-                Clear();
-                AddAll(this, allItems, 0, position);
-            });
-
-            var other = new SpatialBlock(otherFileName);
-
-            AddAll(other, allItems, position, allItems.Count);
-
-            task.Wait();
-
-            return new SpatialSplitInfo
-            {
-                SplitByLatitude = splitByLatitude,
-                SplitValue = splitValue,
-                FirstChild = new SpatialSplitInfo{ Block = this },
-                SecondChild = new SpatialSplitInfo{ Block = other }
-            };
+            return allItems;
         }
 
         private void Clear()
@@ -404,7 +470,7 @@ namespace OSM_pbf_convert
 
         private SNode[] ReadAllNodes()
         {
-            var allNodes = new SNode[nodesCount];
+            var allNodes = new List<SNode>(nodesCount);
 
             Flush();
             stream.Position = 0;
@@ -412,26 +478,26 @@ namespace OSM_pbf_convert
             var id = 0L;
             var lat = 0;
             var lon = 0;
-            for (var i = 0; i < allNodes.Length; i++)
+            while (stream.Position < stream.Length)
             {
                 var inc = EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
-                if (inc == 0) throw new InvalidOperationException("Unexpected end of nodes.");
+                if (inc == 0) break;
                 id += inc;
                 lat += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
                 lon += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
 
                 var tags = ReadTags();
 
-                allNodes[i] = new SNode
+                allNodes.Add(new SNode
                 {
                     Id = id,
                     Lat = lat,
                     Lon = lon,
                     Tags = tags
-                };
+                });
             }
 
-            return allNodes;
+            return allNodes.ToArray();
         }
 
         private List<STagInfo> ReadTags()
@@ -476,6 +542,48 @@ namespace OSM_pbf_convert
             reader?.Dispose();
             writer?.Dispose();
             stream?.Dispose();
+        }
+    }
+
+    public class SpatialSplitInfoExtended
+    {
+        public List<IMapObject> Items { get; set; }
+        public int Start { get; set; }
+        public int End { get; set; }
+        public int? SplitValue { get; set; }
+        public SpatialSplitInfoExtended First { get; set; }
+        public SpatialSplitInfoExtended Second { get; set; }
+        public int Count => End - Start + 1;
+        public bool SplitByLatitude { get; set; }
+        public BoundingRect BoundingRect { get; set; }
+
+        public int GetSize()
+        {
+            var result = 0;
+
+            for (var i = Start; i <= End; i++)
+            {
+                var item = Items[i];
+                result++;
+                if (item.ObjectType == RelationMemberTypes.Way)
+                {
+                    var way = (SWay) item;
+                    result += way.Nodes.Count;
+                }
+            }
+
+            return result;
+        }
+
+        public void CalcBoundingRect()
+        {
+            BoundingRect = new BoundingRect();
+            for (var i = Start; i <= End; i++)
+            {
+                var item = Items[i];
+
+                BoundingRect.Extend(item.MidLat, item.MidLon);
+            }
         }
     }
 }

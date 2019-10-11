@@ -18,4 +18,10 @@
     <ProjectReference Include="..\ProtocolBuffers\ProtocolBuffers.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="tags-map.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

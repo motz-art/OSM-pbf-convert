@@ -151,6 +151,9 @@ namespace OSM_pbf_convert
         private readonly NodesIndex nodesIndex;
         private readonly RelationsFile relationsFile;
         private readonly WaysDataFile waysData;
+
+        private readonly SpatialIndex spatialIndex;
+
         private string fileName;
 
         public RelationsProcessor(string fileName)
@@ -159,6 +162,7 @@ namespace OSM_pbf_convert
             waysData = new WaysDataFile(fileName + ".ways.dat");
             nodesIndex = new NodesIndex(fileName, true);
             relationsFile = new RelationsFile(fileName + ".rels");
+            spatialIndex = new SpatialIndex(); // ToDo: implement usage continuation.
         }
 
         public string BlobRead(Blob blob)

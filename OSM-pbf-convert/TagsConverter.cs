@@ -12,11 +12,15 @@ namespace OSM_pbf_convert
         public class TagsConvertSettings
         {
             public IDictionary<string, int> KeyCodes { get; set; }
+            public IReadOnlyList<STagInfo> NodeTagCodes { get; set; }
+            public IReadOnlyList<STagInfo> WayTagCodes { get; set; }
             public IReadOnlyList<STagInfo> TagCodes { get; set; }
             public IReadOnlyList<string> KeyStopList { get; set; }
         }
 
         public IDictionary<string, int> keyCodes;
+        public IDictionary<OsmTag, int> nodeTagCodes;
+        public IDictionary<OsmTag, int> wayTagCodes;
         public IDictionary<OsmTag, int> tagCodes;
         public ISet<string> keyStopList;
 
@@ -28,9 +32,62 @@ namespace OSM_pbf_convert
 
             keyCodes = settings.KeyCodes;
             tagCodes = settings.TagCodes.ToDictionary(x => new OsmTag(x.Key, x.Value), x => x.TagId.Value);
+            nodeTagCodes = settings.NodeTagCodes.ToDictionary(x => new OsmTag(x.Key, x.Value), x => x.TagId.Value);
+            wayTagCodes = settings.WayTagCodes.ToDictionary(x => new OsmTag(x.Key, x.Value), x => x.TagId.Value);
             keyStopList = new HashSet<string>(settings.KeyStopList);
         }
 
+        public List<STagInfo> ConvertNodeTags(IReadOnlyList<OsmTag> tags)
+        {
+            if (keyStopList == null) throw new InvalidOperationException("Settings not loaded.");
+            if (tags == null) throw new ArgumentNullException(nameof(tags));
+
+            var result = new List<STagInfo>();
+            foreach (var tag in tags)
+            {
+                if (keyStopList.Contains(tag.Key)) continue;
+
+                if (nodeTagCodes.TryGetValue(tag, out var id))
+                {
+                    result.Add(new STagInfo { TagId = id });
+                }
+                else if (tagCodes.TryGetValue(tag, out id))
+                {
+                    result.Add(new STagInfo { TagId = id });
+                }
+                else if (keyCodes.TryGetValue(tag.Key, out id))
+                {
+                    result.Add(new STagInfo { KeyId = id, Value = tag.Value });
+                }
+            }
+            return result;
+        }
+
+        public List<STagInfo> ConvertWayTags(IReadOnlyList<OsmTag> tags)
+        {
+            if (keyStopList == null) throw new InvalidOperationException("Settings not loaded.");
+            if (tags == null) throw new ArgumentNullException(nameof(tags));
+
+            var result = new List<STagInfo>();
+            foreach (var tag in tags)
+            {
+                if (keyStopList.Contains(tag.Key)) continue;
+
+                if (wayTagCodes.TryGetValue(tag, out var id))
+                {
+                    result.Add(new STagInfo { TagId = id });
+                }
+                else if (tagCodes.TryGetValue(tag, out id))
+                {
+                    result.Add(new STagInfo { TagId = id });
+                }
+                else if (keyCodes.TryGetValue(tag.Key, out id))
+                {
+                    result.Add(new STagInfo { KeyId = id, Value = tag.Value });
+                }
+            }
+            return result;
+        }
         public List<STagInfo> ConvertTags(IReadOnlyList<OsmTag> tags)
         {
             if (keyStopList == null) throw new InvalidOperationException("Settings not loaded.");
