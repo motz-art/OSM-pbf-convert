@@ -172,7 +172,10 @@ namespace OSM_pbf_convert
 
             waysDataFile.WriteWay(sway);
 
-            spatialIndex.Add(sway);
+            if (way.Tags != null && way.Tags.Any())
+            {
+                spatialIndex.Add(sway);
+            }
         }
 
         private SWay CreateSWay(OsmWay way, IReadOnlyList<MapNode> nodes)

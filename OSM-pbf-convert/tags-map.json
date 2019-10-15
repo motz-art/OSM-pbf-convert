@@ -1098,1826 +1098,461 @@
     }
   ],
   "WayTagCodes": [
-    {
-      "Key": "building",
-      "Value": "yes"
-    },
-    {
-      "Key": "highway",
-      "Value": "residential"
-    },
-    {
-      "Key": "building",
-      "Value": "house"
-    },
-    {
-      "Key": "highway",
-      "Value": "service"
-    },
-    {
-      "Key": "highway",
-      "Value": "track"
-    },
-    {
-      "Key": "highway",
-      "Value": "unclassified"
-    },
-    {
-      "Key": "wall",
-      "Value": "no"
-    },
-    {
-      "Key": "waterway",
-      "Value": "stream"
-    },
-    {
-      "Key": "surface",
-      "Value": "asphalt"
-    },
-    {
-      "Key": "oneway",
-      "Value": "yes"
-    },
-    {
-      "Key": "highway",
-      "Value": "footway"
-    },
-    {
-      "Key": "building",
-      "Value": "residential"
-    },
-    {
-      "Key": "natural",
-      "Value": "water"
-    },
-    {
-      "Key": "highway",
-      "Value": "path"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "1"
-    },
-    {
-      "Key": "lanes",
-      "Value": "2"
-    },
-    {
-      "Key": "highway",
-      "Value": "tertiary"
-    },
-    {
-      "Key": "access",
-      "Value": "private"
-    },
-    {
-      "Key": "natural",
-      "Value": "wood"
-    },
-    {
-      "Key": "landuse",
-      "Value": "residential"
-    },
-    {
-      "Key": "service",
-      "Value": "driveway"
-    },
-    {
-      "Key": "surface",
-      "Value": "unpaved"
-    },
-    {
-      "Key": "landuse",
-      "Value": "farmland"
-    },
-    {
-      "Key": "layer",
-      "Value": "1"
-    },
-    {
-      "Key": "landuse",
-      "Value": "forest"
-    },
-    {
-      "Key": "bridge",
-      "Value": "yes"
-    },
-    {
-      "Key": "service",
-      "Value": "parking_aisle"
-    },
-    {
-      "Key": "highway",
-      "Value": "secondary"
-    },
-    {
-      "Key": "barrier",
-      "Value": "fence"
-    },
-    {
-      "Key": "building",
-      "Value": "garage"
-    },
-    {
-      "Key": "surface",
-      "Value": "paved"
-    },
-    {
-      "Key": "landuse",
-      "Value": "grass"
-    },
-    {
-      "Key": "oneway",
-      "Value": "no"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "2"
-    },
-    {
-      "Key": "building",
-      "Value": "apartments"
-    },
-    {
-      "Key": "amenity",
-      "Value": "parking"
-    },
-    {
-      "Key": "lit",
-      "Value": "yes"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "50"
-    },
-    {
-      "Key": "barrier",
-      "Value": "wall"
-    },
-    {
-      "Key": "highway",
-      "Value": "primary"
-    },
-    {
-      "Key": "landuse",
-      "Value": "meadow"
-    },
-    {
-      "Key": "foot",
-      "Value": "yes"
-    },
-    {
-      "Key": "waterway",
-      "Value": "ditch"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "30"
-    },
-    {
-      "Key": "intermittent",
-      "Value": "yes"
-    },
-    {
-      "Key": "natural",
-      "Value": "scrub"
-    },
-    {
-      "Key": "lanes",
-      "Value": "1"
-    },
-    {
-      "Key": "building:units",
-      "Value": "1"
-    },
-    {
-      "Key": "import",
-      "Value": "yes"
-    },
-    {
-      "Key": "building",
-      "Value": "detached"
-    },
-    {
-      "Key": "layer",
-      "Value": "-1"
-    },
-    {
-      "Key": "bicycle",
-      "Value": "yes"
-    },
-    {
-      "Key": "railway",
-      "Value": "rail"
-    },
-    {
-      "Key": "natural",
-      "Value": "wetland"
-    },
-    {
-      "Key": "surface",
-      "Value": "ground"
-    },
-    {
-      "Key": "building",
-      "Value": "hut"
-    },
-    {
-      "Key": "tracktype",
-      "Value": "grade3"
-    },
-    {
-      "Key": "roof:shape",
-      "Value": "gabled"
-    },
-    {
-      "Key": "leisure",
-      "Value": "pitch"
-    },
-    {
-      "Key": "tracktype",
-      "Value": "grade2"
-    },
-    {
-      "Key": "building",
-      "Value": "industrial"
-    },
-    {
-      "Key": "building:flats",
-      "Value": "1"
-    },
-    {
-      "Key": "barrier",
-      "Value": "hedge"
-    },
-    {
-      "Key": "surface",
-      "Value": "gravel"
-    },
-    {
-      "Key": "building",
-      "Value": "shed"
-    },
-    {
-      "Key": "footway",
-      "Value": "sidewalk"
-    },
-    {
-      "Key": "area",
-      "Value": "yes"
-    },
-    {
-      "Key": "waterway",
-      "Value": "river"
-    },
-    {
-      "Key": "tracktype",
-      "Value": "grade4"
-    },
-    {
-      "Key": "boundary",
-      "Value": "administrative"
-    },
-    {
-      "Key": "highway",
-      "Value": "living_street"
-    },
-    {
-      "Key": "building",
-      "Value": "roof"
-    },
-    {
-      "Key": "highway",
-      "Value": "trunk"
-    },
-    {
-      "Key": "service",
-      "Value": "alley"
-    },
-    {
-      "Key": "highway",
-      "Value": "cycleway"
-    },
-    {
-      "Key": "addr:interpolation",
-      "Value": "even"
-    },
-    {
-      "Key": "parking",
-      "Value": "surface"
-    },
-    {
-      "Key": "addr:interpolation",
-      "Value": "odd"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "3"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "1"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "4"
-    },
-    {
-      "Key": "tunnel",
-      "Value": "culvert"
-    },
-    {
-      "Key": "surface",
-      "Value": "concrete"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "2"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "5"
-    },
-    {
-      "Key": "leisure",
-      "Value": "swimming_pool"
-    },
-    {
-      "Key": "highway",
-      "Value": "steps"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "6"
-    },
-    {
-      "Key": "tracktype",
-      "Value": "grade1"
-    },
-    {
-      "Key": "natural",
-      "Value": "coastline"
-    },
-    {
-      "Key": "tracktype",
-      "Value": "grade5"
-    },
-    {
-      "Key": "building:ruian:type",
-      "Value": "7"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "7"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "8"
-    },
-    {
-      "Key": "highway",
-      "Value": "motorway"
-    },
-    {
-      "Key": "bicycle",
-      "Value": "no"
-    },
-    {
-      "Key": "lanes",
-      "Value": "3"
-    },
-    {
-      "Key": "tunnel",
-      "Value": "yes"
-    },
-    {
-      "Key": "waterway",
-      "Value": "drain"
-    },
-    {
-      "Key": "foot",
-      "Value": "designated"
-    },
-    {
-      "Key": "water",
-      "Value": "pond"
-    },
-    {
-      "Key": "footway",
-      "Value": "crossing"
-    },
-    {
-      "Key": "leisure",
-      "Value": "park"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "10"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "9"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "3"
-    },
-    {
-      "Key": "gnis:ftype",
-      "Value": "StreamRiver"
-    },
-    {
-      "Key": "landuse",
-      "Value": "farmyard"
-    },
-    {
-      "Key": "surface",
-      "Value": "paving_stones"
-    },
-    {
-      "Key": "building",
-      "Value": "commercial"
-    },
-    {
-      "Key": "building:part",
-      "Value": "yes"
-    },
-    {
-      "Key": "building:ruian:type",
-      "Value": "3"
-    },
-    {
-      "Key": "electrified",
-      "Value": "contact_line"
-    },
-    {
-      "Key": "landuse",
-      "Value": "orchard"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "11"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "12"
-    },
-    {
-      "Key": "lit",
-      "Value": "no"
-    },
-    {
-      "Key": "usage",
-      "Value": "main"
-    },
-    {
-      "Key": "surface",
-      "Value": "dirt"
-    },
-    {
-      "Key": "building",
-      "Value": "terrace"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "14"
-    },
-    {
-      "Key": "highway",
-      "Value": "motorway_link"
-    },
-    {
-      "Key": "electrified",
-      "Value": "no"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "40"
-    },
-    {
-      "Key": "bicycle",
-      "Value": "designated"
-    },
-    {
-      "Key": "landuse",
-      "Value": "industrial"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "60"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "15"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "13"
-    },
-    {
-      "Key": "natural",
-      "Value": "grassland"
-    },
-    {
-      "Key": "natural",
-      "Value": "tree_row"
-    },
-    {
-      "Key": "mml:class",
-      "Value": "36311"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "16"
-    },
-    {
-      "Key": "amenity",
-      "Value": "place_of_worship"
-    },
-    {
-      "Key": "access",
-      "Value": "yes"
-    },
-    {
-      "Key": "junction",
-      "Value": "roundabout"
-    },
-    {
-      "Key": "surface",
-      "Value": "grass"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "17"
-    },
-    {
-      "Key": "horse",
-      "Value": "no"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "80"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "18"
-    },
-    {
-      "Key": "power",
-      "Value": "line"
-    },
-    {
-      "Key": "highway",
-      "Value": "pedestrian"
-    },
-    {
-      "Key": "smoothness",
-      "Value": "good"
-    },
-    {
-      "Key": "amenity",
-      "Value": "school"
-    },
-    {
-      "Key": "building",
-      "Value": "garages"
-    },
-    {
-      "Key": "leisure",
-      "Value": "garden"
-    },
-    {
-      "Key": "building:use",
-      "Value": "residential"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "20"
-    },
-    {
-      "Key": "water",
-      "Value": "lake"
-    },
-    {
-      "Key": "religion",
-      "Value": "christian"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "19"
-    },
-    {
-      "Key": "roof:shape",
-      "Value": "flat"
-    },
-    {
-      "Key": "building",
-      "Value": "school"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "5"
-    },
-    {
-      "Key": "building",
-      "Value": "construction"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "30 mph"
-    },
-    {
-      "Key": "leaf_type",
-      "Value": "broadleaved"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "21"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "22"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "4"
-    },
-    {
-      "Key": "foot",
-      "Value": "no"
-    },
-    {
-      "Key": "sidewalk",
-      "Value": "both"
-    },
-    {
-      "Key": "motor_vehicle",
-      "Value": "no"
-    },
-    {
-      "Key": "segregated",
-      "Value": "no"
-    },
-    {
-      "Key": "building",
-      "Value": "retail"
-    },
-    {
-      "Key": "building:ruian:type",
-      "Value": "18"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "23"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "24"
-    },
-    {
-      "Key": "natural",
-      "Value": "bare_rock"
-    },
-    {
-      "Key": "lanes",
-      "Value": "4"
-    },
-    {
-      "Key": "roof:material",
-      "Value": "roof_tiles"
-    },
-    {
-      "Key": "admin_level",
-      "Value": "8"
-    },
-    {
-      "Key": "natural",
-      "Value": "cliff"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "25"
-    },
-    {
-      "Key": "access",
-      "Value": "no"
-    },
-    {
-      "Key": "sidewalk",
-      "Value": "no"
-    },
-    {
-      "Key": "service",
-      "Value": "spur"
-    },
-    {
-      "Key": "frequency",
-      "Value": "50"
-    },
-    {
-      "Key": "building",
-      "Value": "greenhouse"
-    },
-    {
-      "Key": "sport",
-      "Value": "soccer"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "26"
-    },
-    {
-      "Key": "service",
-      "Value": "yard"
-    },
-    {
-      "Key": "leisure",
-      "Value": "playground"
-    },
-    {
-      "Key": "highway",
-      "Value": "trunk_link"
-    },
-    {
-      "Key": "wetland",
-      "Value": "bog"
-    },
-    {
-      "Key": "landuse",
-      "Value": "vineyard"
-    },
-    {
-      "Key": "waterway",
-      "Value": "canal"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "27"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "28"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "70"
-    },
-    {
-      "Key": "roof:levels",
-      "Value": "1"
-    },
-    {
-      "Key": "landuse",
-      "Value": "reservoir"
-    },
-    {
-      "Key": "man_made",
-      "Value": "pier"
-    },
-    {
-      "Key": "lanes:backward",
-      "Value": "1"
-    },
-    {
-      "Key": "noname",
-      "Value": "yes"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "100"
-    },
-    {
-      "Key": "frequency",
-      "Value": "0"
-    },
-    {
-      "Key": "building",
-      "Value": "barn"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "30"
-    },
-    {
-      "Key": "building:material",
-      "Value": "cement_block"
-    },
-    {
-      "Key": "landuse",
-      "Value": "cemetery"
-    },
-    {
-      "Key": "highway",
-      "Value": "primary_link"
-    },
-    {
-      "Key": "power",
-      "Value": "minor_line"
-    },
-    {
-      "Key": "cables",
-      "Value": "3"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "29"
-    },
-    {
-      "Key": "sport",
-      "Value": "tennis"
-    },
-    {
-      "Key": "surface",
-      "Value": "compacted"
-    },
-    {
-      "Key": "access",
-      "Value": "permissive"
-    },
-    {
-      "Key": "addr:street:type",
-      "Value": "Avenue"
-    },
-    {
-      "Key": "width",
-      "Value": "2"
-    },
-    {
-      "Key": "hgv",
-      "Value": "designated"
-    },
-    {
-      "Key": "smoothness",
-      "Value": "excellent"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "31"
-    },
-    {
-      "Key": "wheelchair",
-      "Value": "yes"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "32"
-    },
-    {
-      "Key": "building",
-      "Value": "farm_auxiliary"
-    },
-    {
-      "Key": "boat",
-      "Value": "no"
-    },
-    {
-      "Key": "horse",
-      "Value": "yes"
-    },
-    {
-      "Key": "access",
-      "Value": "customers"
-    },
-    {
-      "Key": "power",
-      "Value": "substation"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "25 mph"
-    },
-    {
-      "Key": "sac_scale",
-      "Value": "hiking"
-    },
-    {
-      "Key": "power",
-      "Value": "generator"
-    },
-    {
-      "Key": "residential",
-      "Value": "rural"
-    },
-    {
-      "Key": "lanes:forward",
-      "Value": "1"
-    },
-    {
-      "Key": "fee",
-      "Value": "no"
-    },
-    {
-      "Key": "width",
-      "Value": "3"
-    },
-    {
-      "Key": "leaf_cycle",
-      "Value": "deciduous"
-    },
-    {
-      "Key": "cycleway",
-      "Value": "lane"
-    },
-    {
-      "Key": "natural",
-      "Value": "heath"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "33"
-    },
-    {
-      "Key": "CLC:year",
-      "Value": "2006"
-    },
-    {
-      "Key": "building:material",
-      "Value": "brick"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "34"
-    },
-    {
-      "Key": "sidewalk",
-      "Value": "none"
-    },
-    {
-      "Key": "generator:source",
-      "Value": "solar"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "20"
-    },
-    {
-      "Key": "passenger_lines",
-      "Value": "2"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "35"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "36"
-    },
-    {
-      "Key": "waterway",
-      "Value": "riverbank"
-    },
-    {
-      "Key": "smoothness",
-      "Value": "intermediate"
-    },
-    {
-      "Key": "generator:method",
-      "Value": "photovoltaic"
-    },
-    {
-      "Key": "roof:shape",
-      "Value": "hipped"
-    },
-    {
-      "Key": "highway",
-      "Value": "secondary_link"
-    },
-    {
-      "Key": "surface",
-      "Value": "sand"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "90"
-    },
-    {
-      "Key": "meadow",
-      "Value": "agricultural"
-    },
-    {
-      "Key": "building",
-      "Value": "church"
-    },
-    {
-      "Key": "leaf_type",
-      "Value": "needleleaved"
-    },
-    {
-      "Key": "living_street",
-      "Value": "yes"
-    },
-    {
-      "Key": "incline",
-      "Value": "up"
-    },
-    {
-      "Key": "service",
-      "Value": "siding"
-    },
-    {
-      "Key": "access",
-      "Value": "destination"
-    },
-    {
-      "Key": "toll",
-      "Value": "yes"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "37"
-    },
-    {
-      "Key": "voltage",
-      "Value": "25000"
-    },
-    {
-      "Key": "railway",
-      "Value": "abandoned"
-    },
-    {
-      "Key": "landuse",
-      "Value": "commercial"
-    },
-    {
-      "Key": "place",
-      "Value": "islet"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "38"
-    },
-    {
-      "Key": "building:ruian:type",
-      "Value": "8"
-    },
-    {
-      "Key": "public_transport",
-      "Value": "platform"
-    },
-    {
-      "Key": "building:flats",
-      "Value": "2"
-    },
-    {
-      "Key": "sidewalk",
-      "Value": "right"
-    },
-    {
-      "Key": "man_made",
-      "Value": "storage_tank"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "40"
-    },
-    {
-      "Key": "natural",
-      "Value": "sand"
-    },
-    {
-      "Key": "smoothness",
-      "Value": "bad"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "39"
-    },
-    {
-      "Key": "landuse",
-      "Value": "allotments"
-    },
-    {
-      "Key": "mtb:scale",
-      "Value": "0"
-    },
-    {
-      "Key": "amenity",
-      "Value": "parking_space"
-    },
-    {
-      "Key": "building:units",
-      "Value": "2"
-    },
-    {
-      "Key": "cycleway",
-      "Value": "no"
-    },
-    {
-      "Key": "landuse",
-      "Value": "basin"
-    },
-    {
-      "Key": "water",
-      "Value": "intermittent"
-    },
-    {
-      "Key": "man_made",
-      "Value": "cutline"
-    },
-    {
-      "Key": "lanes:forward",
-      "Value": "2"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "45 mph"
-    },
-    {
-      "Key": "highway",
-      "Value": "road"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "41"
-    },
-    {
-      "Key": "water",
-      "Value": "reservoir"
-    },
-    {
-      "Key": "barrier",
-      "Value": "retaining_wall"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "42"
-    },
-    {
-      "Key": "addr:inclusion",
-      "Value": "actual"
-    },
-    {
-      "Key": "project:eurosha_2012",
-      "Value": "yes"
-    },
-    {
-      "Key": "building:fireproof",
-      "Value": "yes"
-    },
-    {
-      "Key": "covered",
-      "Value": "yes"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "20 mph"
-    },
-    {
-      "Key": "lanes:backward",
-      "Value": "2"
-    },
-    {
-      "Key": "width",
-      "Value": "1"
-    },
-    {
-      "Key": "height",
-      "Value": "3"
-    },
-    {
-      "Key": "building:material",
-      "Value": "plaster"
-    },
-    {
-      "Key": "motor_vehicle",
-      "Value": "yes"
-    },
-    {
-      "Key": "leaf_type",
-      "Value": "mixed"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "43"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "44"
-    },
-    {
-      "Key": "amenity",
-      "Value": "restaurant"
-    },
-    {
-      "Key": "generator:type",
-      "Value": "solar_photovoltaic_panel"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "45"
-    },
-    {
-      "Key": "motorcycle",
-      "Value": "yes"
-    },
-    {
-      "Key": "building",
-      "Value": "warehouse"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "46"
-    },
-    {
-      "Key": "voltage",
-      "Value": "15000"
-    },
-    {
-      "Key": "golf",
-      "Value": "bunker"
-    },
-    {
-      "Key": "landuse",
-      "Value": "retail"
-    },
-    {
-      "Key": "crossing",
-      "Value": "zebra"
-    },
-    {
-      "Key": "usage",
-      "Value": "branch"
-    },
-    {
-      "Key": "surface",
-      "Value": "cobblestone"
-    },
-    {
-      "Key": "roof:orientation",
-      "Value": "across"
-    },
-    {
-      "Key": "highway",
-      "Value": "construction"
-    },
-    {
-      "Key": "highway",
-      "Value": "tertiary_link"
-    },
-    {
-      "Key": "building",
-      "Value": "service"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "47"
-    },
-    {
-      "Key": "height",
-      "Value": "6"
-    },
-    {
-      "Key": "building:material",
-      "Value": "wood"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "50"
-    },
-    {
-      "Key": "mtb:scale",
-      "Value": "1"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "48"
-    },
-    {
-      "Key": "aeroway",
-      "Value": "taxiway"
-    },
-    {
-      "Key": "designation",
-      "Value": "public_footpath"
-    },
-    {
-      "Key": "wetland",
-      "Value": "swamp"
-    },
-    {
-      "Key": "sac_scale",
-      "Value": "mountain_hiking"
-    },
-    {
-      "Key": "embankment",
-      "Value": "yes"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "RO:urban"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "49"
-    },
-    {
-      "Key": "incline",
-      "Value": "down"
-    },
-    {
-      "Key": "frequency",
-      "Value": "16.7"
-    },
-    {
-      "Key": "generator:output:electricity",
-      "Value": "yes"
-    },
-    {
-      "Key": "barrier",
-      "Value": "kerb"
-    },
-    {
-      "Key": "motorcar",
-      "Value": "no"
-    },
-    {
-      "Key": "tracks",
-      "Value": "1"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "51"
-    },
-    {
-      "Key": "passenger_lines",
-      "Value": "1"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "40 mph"
-    },
-    {
-      "Key": "admin_level",
-      "Value": "6"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "35 mph"
-    },
-    {
-      "Key": "denomination",
-      "Value": "catholic"
-    },
-    {
-      "Key": "addr:street:type",
-      "Value": "Street"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "52"
-    },
-    {
-      "Key": "leaf_cycle",
-      "Value": "evergreen"
-    },
-    {
-      "Key": "building",
-      "Value": "static_caravan"
-    },
-    {
-      "Key": "roof:orientation",
-      "Value": "along"
-    },
-    {
-      "Key": "trail_visibility",
-      "Value": "good"
-    },
-    {
-      "Key": "tunnel",
-      "Value": "building_passage"
-    },
-    {
-      "Key": "mml:class",
-      "Value": "42261"
-    },
-    {
-      "Key": "building:ruian:type",
-      "Value": "13"
-    },
-    {
-      "Key": "lcn",
-      "Value": "yes"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "53"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "54"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "6"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "55"
-    },
-    {
-      "Key": "width",
-      "Value": "4"
-    },
-    {
-      "Key": "amenity",
-      "Value": "fuel"
-    },
-    {
-      "Key": "building",
-      "Value": "farm"
-    },
-    {
-      "Key": "building:condition",
-      "Value": "good"
-    },
-    {
-      "Key": "building",
-      "Value": "civic"
-    },
-    {
-      "Key": "leisure",
-      "Value": "sports_centre"
-    },
-    {
-      "Key": "height",
-      "Value": "2 m"
-    },
-    {
-      "Key": "height",
-      "Value": "4.6"
-    },
-    {
-      "Key": "roof:colour",
-      "Value": "grey"
-    },
-    {
-      "Key": "height",
-      "Value": "4.3"
-    },
-    {
-      "Key": "height",
-      "Value": "4.0"
-    },
-    {
-      "Key": "building",
-      "Value": "cabin"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "56"
-    },
-    {
-      "Key": "building:roof",
-      "Value": "metal"
-    },
-    {
-      "Key": "sport",
-      "Value": "basketball"
-    },
-    {
-      "Key": "height",
-      "Value": "4.2"
-    },
-    {
-      "Key": "building:colour",
-      "Value": "white"
-    },
-    {
-      "Key": "height",
-      "Value": "4.5"
-    },
-    {
-      "Key": "height",
-      "Value": "4.1"
-    },
-    {
-      "Key": "wheelchair",
-      "Value": "no"
-    },
-    {
-      "Key": "wood",
-      "Value": "deciduous"
-    },
-    {
-      "Key": "height",
-      "Value": "4.4"
-    },
-    {
-      "Key": "operator",
-      "Value": "PGL LP"
-    },
-    {
-      "Key": "amenity",
-      "Value": "shelter"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "57"
-    },
-    {
-      "Key": "building:levels",
-      "Value": "9"
-    },
-    {
-      "Key": "crossing",
-      "Value": "marked"
-    },
-    {
-      "Key": "natural",
-      "Value": "scree"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "60"
-    },
-    {
-      "Key": "sport",
-      "Value": "baseball"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "58"
-    },
-    {
-      "Key": "voltage",
-      "Value": "3000"
-    },
-    {
-      "Key": "man_made",
-      "Value": "pipeline"
-    },
-    {
-      "Key": "wetland",
-      "Value": "marsh"
-    },
-    {
-      "Key": "place",
-      "Value": "plot"
-    },
-    {
-      "Key": "frequency",
-      "Value": "60"
-    },
-    {
-      "Key": "railway:pzb",
-      "Value": "yes"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "120"
-    },
-    {
-      "Key": "access",
-      "Value": "agricultural"
-    },
-    {
-      "Key": "bus",
-      "Value": "yes"
-    },
-    {
-      "Key": "lanes",
-      "Value": "5"
-    },
-    {
-      "Key": "tourism",
-      "Value": "hotel"
-    },
-    {
-      "Key": "landuse",
-      "Value": "quarry"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "59"
-    },
-    {
-      "Key": "maxspeed",
-      "Value": "60 mph"
-    },
-    {
-      "Key": "man_made",
-      "Value": "silo"
-    },
-    {
-      "Key": "seasonal",
-      "Value": "yes"
-    },
-    {
-      "Key": "admin_level",
-      "Value": "10"
-    },
-    {
-      "Key": "height",
-      "Value": "4.7"
-    },
-    {
-      "Key": "height",
-      "Value": "3.8"
-    },
-    {
-      "Key": "height",
-      "Value": "3.7"
-    },
-    {
-      "Key": "noexit",
-      "Value": "yes"
-    },
-    {
-      "Key": "shop",
-      "Value": "supermarket"
-    },
-    {
-      "Key": "hgv:national_network",
-      "Value": "yes"
-    },
-    {
-      "Key": "height",
-      "Value": "4.8"
-    },
-    {
-      "Key": "height",
-      "Value": "3.9"
-    },
-    {
-      "Key": "railway",
-      "Value": "platform"
-    },
-    {
-      "Key": "landuse",
-      "Value": "construction"
-    },
-    {
-      "Key": "religion",
-      "Value": "muslim"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "61"
-    },
-    {
-      "Key": "cycleway",
-      "Value": "track"
-    },
-    {
-      "Key": "motorroad",
-      "Value": "yes"
-    },
-    {
-      "Key": "at_bev:addr_date",
-      "Value": "2017-04-07"
-    },
-    {
-      "Key": "height",
-      "Value": "3.5"
-    },
-    {
-      "Key": "building",
-      "Value": "semidetached_house"
-    },
-    {
-      "Key": "import",
-      "Value": "budovy201004drev"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "62"
-    },
-    {
-      "Key": "height",
-      "Value": "4.9"
-    },
-    {
-      "Key": "wall",
-      "Value": "dry_stone"
-    },
-    {
-      "Key": "abandoned:building",
-      "Value": "yes"
-    },
-    {
-      "Key": "shop",
-      "Value": "convenience"
-    },
-    {
-      "Key": "height",
-      "Value": "3.6"
-    },
-    {
-      "Key": "motorcycle",
-      "Value": "no"
-    },
-    {
-      "Key": "motor_vehicle",
-      "Value": "private"
-    },
-    {
-      "Key": "height",
-      "Value": "5"
-    },
-    {
-      "Key": "golf",
-      "Value": "tee"
-    },
-    {
-      "Key": "height",
-      "Value": "5.0"
-    },
-    {
-      "Key": "wires",
-      "Value": "single"
-    },
-    {
-      "Key": "maxspeed:type",
-      "Value": "sign"
-    },
-    {
-      "Key": "layer",
-      "Value": "2"
-    },
-    {
-      "Key": "segregated",
-      "Value": "yes"
-    },
-    {
-      "Key": "amenity",
-      "Value": "kindergarten"
-    },
-    {
-      "Key": "height",
-      "Value": "3 m"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "63"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "64"
-    },
-    {
-      "Key": "waterway",
-      "Value": "dam"
-    },
-    {
-      "Key": "usage",
-      "Value": "industrial"
-    },
-    {
-      "Key": "gauge",
-      "Value": "1067"
-    },
-    {
-      "Key": "surface",
-      "Value": "fine_gravel"
-    },
-    {
-      "Key": "addr:housenumber",
-      "Value": "65"
-    },
-    {
-      "Key": "crossing",
-      "Value": "unmarked"
-    },
-    {
-      "Key": "trail_visibility",
-      "Value": "excellent"
-    },
-    {
-      "Key": "man_made",
-      "Value": "works"
-    },
-    {
-      "Key": "sidewalk",
-      "Value": "left"
-    },
-    {
-      "Key": "railway:traffic_mode",
-      "Value": "mixed"
-    },
-    {
-      "Key": "bicycle",
-      "Value": "use_sidepath"
-    },
-    {
-      "Key": "hgv",
-      "Value": "yes"
-    },
-    {
-      "Key": "surface",
-      "Value": "sett"
-    },
-    {
-      "Key": "railway",
-      "Value": "disused"
-    },
-    {
-      "Key": "voltage",
-      "Value": "1500"
-    },
-    {
-      "Key": "natural",
-      "Value": "beach"
-    }
+    { "TagId": 1, "Key": "building", "Value": "yes" },
+    { "TagId": 2, "Key": "highway", "Value": "residential" },
+    { "TagId": 3, "Key": "building", "Value": "house" },
+    { "TagId": 4, "Key": "highway", "Value": "service" },
+    { "TagId": 5, "Key": "highway", "Value": "track" },
+    { "TagId": 6, "Key": "highway", "Value": "unclassified" },
+    { "TagId": 7, "Key": "wall", "Value": "no" },
+    { "TagId": 8, "Key": "waterway", "Value": "stream" },
+    { "TagId": 9, "Key": "surface", "Value": "asphalt" },
+    { "TagId": 10, "Key": "oneway", "Value": "yes" },
+    { "TagId": 11, "Key": "highway", "Value": "footway" },
+    { "TagId": 12, "Key": "building", "Value": "residential" },
+    { "TagId": 13, "Key": "natural", "Value": "water" },
+    { "TagId": 14, "Key": "highway", "Value": "path" },
+    { "TagId": 15, "Key": "building:levels", "Value": "1" },
+    { "TagId": 16, "Key": "lanes", "Value": "2" },
+    { "TagId": 17, "Key": "highway", "Value": "tertiary" },
+    { "TagId": 18, "Key": "access", "Value": "private" },
+    { "TagId": 19, "Key": "natural", "Value": "wood" },
+    { "TagId": 20, "Key": "landuse", "Value": "residential" },
+    { "TagId": 21, "Key": "service", "Value": "driveway" },
+    { "TagId": 22, "Key": "surface", "Value": "unpaved" },
+    { "TagId": 23, "Key": "landuse", "Value": "farmland" },
+    { "TagId": 24, "Key": "layer", "Value": "1" },
+    { "TagId": 25, "Key": "landuse", "Value": "forest" },
+    { "TagId": 26, "Key": "bridge", "Value": "yes" },
+    { "TagId": 27, "Key": "service", "Value": "parking_aisle" },
+    { "TagId": 28, "Key": "highway", "Value": "secondary" },
+    { "TagId": 29, "Key": "barrier", "Value": "fence" },
+    { "TagId": 30, "Key": "building", "Value": "garage" },
+    { "TagId": 31, "Key": "surface", "Value": "paved" },
+    { "TagId": 32, "Key": "landuse", "Value": "grass" },
+    { "TagId": 33, "Key": "oneway", "Value": "no" },
+    { "TagId": 34, "Key": "building:levels", "Value": "2" },
+    { "TagId": 35, "Key": "building", "Value": "apartments" },
+    { "TagId": 36, "Key": "amenity", "Value": "parking" },
+    { "TagId": 37, "Key": "lit", "Value": "yes" },
+    { "TagId": 38, "Key": "maxspeed", "Value": "50" },
+    { "TagId": 39, "Key": "barrier", "Value": "wall" },
+    { "TagId": 40, "Key": "highway", "Value": "primary" },
+    { "TagId": 41, "Key": "landuse", "Value": "meadow" },
+    { "TagId": 42, "Key": "foot", "Value": "yes" },
+    { "TagId": 43, "Key": "waterway", "Value": "ditch" },
+    { "TagId": 44, "Key": "maxspeed", "Value": "30" },
+    { "TagId": 45, "Key": "intermittent", "Value": "yes" },
+    { "TagId": 46, "Key": "natural", "Value": "scrub" },
+    { "TagId": 47, "Key": "lanes", "Value": "1" },
+    { "TagId": 48, "Key": "building:units", "Value": "1" },
+    { "TagId": 49, "Key": "import", "Value": "yes" },
+    { "TagId": 50, "Key": "building", "Value": "detached" },
+    { "TagId": 51, "Key": "layer", "Value": "-1" },
+    { "TagId": 52, "Key": "bicycle", "Value": "yes" },
+    { "TagId": 53, "Key": "railway", "Value": "rail" },
+    { "TagId": 54, "Key": "natural", "Value": "wetland" },
+    { "TagId": 55, "Key": "surface", "Value": "ground" },
+    { "TagId": 56, "Key": "building", "Value": "hut" },
+    { "TagId": 57, "Key": "tracktype", "Value": "grade3" },
+    { "TagId": 58, "Key": "roof:shape", "Value": "gabled" },
+    { "TagId": 59, "Key": "leisure", "Value": "pitch" },
+    { "TagId": 60, "Key": "tracktype", "Value": "grade2" },
+    { "TagId": 61, "Key": "building", "Value": "industrial" },
+    { "TagId": 62, "Key": "building:flats", "Value": "1" },
+    { "TagId": 63, "Key": "barrier", "Value": "hedge" },
+    { "TagId": 64, "Key": "surface", "Value": "gravel" },
+    { "TagId": 65, "Key": "building", "Value": "shed" },
+    { "TagId": 66, "Key": "footway", "Value": "sidewalk" },
+    { "TagId": 67, "Key": "area", "Value": "yes" },
+    { "TagId": 68, "Key": "waterway", "Value": "river" },
+    { "TagId": 69, "Key": "tracktype", "Value": "grade4" },
+    { "TagId": 70, "Key": "boundary", "Value": "administrative" },
+    { "TagId": 71, "Key": "highway", "Value": "living_street" },
+    { "TagId": 72, "Key": "building", "Value": "roof" },
+    { "TagId": 73, "Key": "highway", "Value": "trunk" },
+    { "TagId": 74, "Key": "service", "Value": "alley" },
+    { "TagId": 75, "Key": "highway", "Value": "cycleway" },
+    { "TagId": 76, "Key": "addr:interpolation", "Value": "even" },
+    { "TagId": 77, "Key": "parking", "Value": "surface" },
+    { "TagId": 78, "Key": "addr:interpolation", "Value": "odd" },
+    { "TagId": 79, "Key": "addr:housenumber", "Value": "3" },
+    { "TagId": 80, "Key": "addr:housenumber", "Value": "1" },
+    { "TagId": 81, "Key": "addr:housenumber", "Value": "4" },
+    { "TagId": 82, "Key": "tunnel", "Value": "culvert" },
+    { "TagId": 83, "Key": "surface", "Value": "concrete" },
+    { "TagId": 84, "Key": "addr:housenumber", "Value": "2" },
+    { "TagId": 85, "Key": "addr:housenumber", "Value": "5" },
+    { "TagId": 86, "Key": "leisure", "Value": "swimming_pool" },
+    { "TagId": 87, "Key": "highway", "Value": "steps" },
+    { "TagId": 88, "Key": "addr:housenumber", "Value": "6" },
+    { "TagId": 89, "Key": "tracktype", "Value": "grade1" },
+    { "TagId": 90, "Key": "natural", "Value": "coastline" },
+    { "TagId": 91, "Key": "tracktype", "Value": "grade5" },
+    { "TagId": 92, "Key": "building:ruian:type", "Value": "7" },
+    { "TagId": 93, "Key": "addr:housenumber", "Value": "7" },
+    { "TagId": 94, "Key": "addr:housenumber", "Value": "8" },
+    { "TagId": 95, "Key": "highway", "Value": "motorway" },
+    { "TagId": 96, "Key": "bicycle", "Value": "no" },
+    { "TagId": 97, "Key": "lanes", "Value": "3" },
+    { "TagId": 98, "Key": "tunnel", "Value": "yes" },
+    { "TagId": 99, "Key": "waterway", "Value": "drain" },
+    { "TagId": 100, "Key": "foot", "Value": "designated" },
+    { "TagId": 101, "Key": "water", "Value": "pond" },
+    { "TagId": 102, "Key": "footway", "Value": "crossing" },
+    { "TagId": 103, "Key": "leisure", "Value": "park" },
+    { "TagId": 104, "Key": "addr:housenumber", "Value": "10" },
+    { "TagId": 105, "Key": "addr:housenumber", "Value": "9" },
+    { "TagId": 106, "Key": "building:levels", "Value": "3" },
+    { "TagId": 107, "Key": "gnis:ftype", "Value": "StreamRiver" },
+    { "TagId": 108, "Key": "landuse", "Value": "farmyard" },
+    { "TagId": 109, "Key": "surface", "Value": "paving_stones" },
+    { "TagId": 110, "Key": "building", "Value": "commercial" },
+    { "TagId": 111, "Key": "building:part", "Value": "yes" },
+    { "TagId": 112, "Key": "building:ruian:type", "Value": "3" },
+    { "TagId": 113, "Key": "electrified", "Value": "contact_line" },
+    { "TagId": 114, "Key": "landuse", "Value": "orchard" },
+    { "TagId": 115, "Key": "addr:housenumber", "Value": "11" },
+    { "TagId": 116, "Key": "addr:housenumber", "Value": "12" },
+    { "TagId": 117, "Key": "lit", "Value": "no" },
+    { "TagId": 118, "Key": "usage", "Value": "main" },
+    { "TagId": 119, "Key": "surface", "Value": "dirt" },
+    { "TagId": 120, "Key": "building", "Value": "terrace" },
+    { "TagId": 121, "Key": "addr:housenumber", "Value": "14" },
+    { "TagId": 122, "Key": "highway", "Value": "motorway_link" },
+    { "TagId": 123, "Key": "electrified", "Value": "no" },
+    { "TagId": 124, "Key": "maxspeed", "Value": "40" },
+    { "TagId": 125, "Key": "bicycle", "Value": "designated" },
+    { "TagId": 126, "Key": "landuse", "Value": "industrial" },
+    { "TagId": 127, "Key": "maxspeed", "Value": "60" },
+    { "TagId": 128, "Key": "addr:housenumber", "Value": "15" },
+    { "TagId": 129, "Key": "addr:housenumber", "Value": "13" },
+    { "TagId": 130, "Key": "natural", "Value": "grassland" },
+    { "TagId": 131, "Key": "natural", "Value": "tree_row" },
+    { "TagId": 132, "Key": "mml:class", "Value": "36311" },
+    { "TagId": 133, "Key": "addr:housenumber", "Value": "16" },
+    { "TagId": 134, "Key": "amenity", "Value": "place_of_worship" },
+    { "TagId": 135, "Key": "access", "Value": "yes" },
+    { "TagId": 136, "Key": "junction", "Value": "roundabout" },
+    { "TagId": 137, "Key": "surface", "Value": "grass" },
+    { "TagId": 138, "Key": "addr:housenumber", "Value": "17" },
+    { "TagId": 139, "Key": "horse", "Value": "no" },
+    { "TagId": 140, "Key": "maxspeed", "Value": "80" },
+    { "TagId": 141, "Key": "addr:housenumber", "Value": "18" },
+    { "TagId": 142, "Key": "power", "Value": "line" },
+    { "TagId": 143, "Key": "highway", "Value": "pedestrian" },
+    { "TagId": 144, "Key": "smoothness", "Value": "good" },
+    { "TagId": 145, "Key": "amenity", "Value": "school" },
+    { "TagId": 146, "Key": "building", "Value": "garages" },
+    { "TagId": 147, "Key": "leisure", "Value": "garden" },
+    { "TagId": 148, "Key": "building:use", "Value": "residential" },
+    { "TagId": 149, "Key": "addr:housenumber", "Value": "20" },
+    { "TagId": 150, "Key": "water", "Value": "lake" },
+    { "TagId": 151, "Key": "religion", "Value": "christian" },
+    { "TagId": 152, "Key": "addr:housenumber", "Value": "19" },
+    { "TagId": 153, "Key": "roof:shape", "Value": "flat" },
+    { "TagId": 154, "Key": "building", "Value": "school" },
+    { "TagId": 155, "Key": "building:levels", "Value": "5" },
+    { "TagId": 156, "Key": "building", "Value": "construction" },
+    { "TagId": 157, "Key": "maxspeed", "Value": "30 mph" },
+    { "TagId": 158, "Key": "leaf_type", "Value": "broadleaved" },
+    { "TagId": 159, "Key": "addr:housenumber", "Value": "21" },
+    { "TagId": 160, "Key": "addr:housenumber", "Value": "22" },
+    { "TagId": 161, "Key": "building:levels", "Value": "4" },
+    { "TagId": 162, "Key": "foot", "Value": "no" },
+    { "TagId": 163, "Key": "sidewalk", "Value": "both" },
+    { "TagId": 164, "Key": "motor_vehicle", "Value": "no" },
+    { "TagId": 165, "Key": "segregated", "Value": "no" },
+    { "TagId": 166, "Key": "building", "Value": "retail" },
+    { "TagId": 167, "Key": "building:ruian:type", "Value": "18" },
+    { "TagId": 168, "Key": "addr:housenumber", "Value": "23" },
+    { "TagId": 169, "Key": "addr:housenumber", "Value": "24" },
+    { "TagId": 170, "Key": "natural", "Value": "bare_rock" },
+    { "TagId": 171, "Key": "lanes", "Value": "4" },
+    { "TagId": 172, "Key": "roof:material", "Value": "roof_tiles" },
+    { "TagId": 173, "Key": "admin_level", "Value": "8" },
+    { "TagId": 174, "Key": "natural", "Value": "cliff" },
+    { "TagId": 175, "Key": "addr:housenumber", "Value": "25" },
+    { "TagId": 176, "Key": "access", "Value": "no" },
+    { "TagId": 177, "Key": "sidewalk", "Value": "no" },
+    { "TagId": 178, "Key": "service", "Value": "spur" },
+    { "TagId": 179, "Key": "frequency", "Value": "50" },
+    { "TagId": 180, "Key": "building", "Value": "greenhouse" },
+    { "TagId": 181, "Key": "sport", "Value": "soccer" },
+    { "TagId": 182, "Key": "addr:housenumber", "Value": "26" },
+    { "TagId": 183, "Key": "service", "Value": "yard" },
+    { "TagId": 184, "Key": "leisure", "Value": "playground" },
+    { "TagId": 185, "Key": "highway", "Value": "trunk_link" },
+    { "TagId": 186, "Key": "wetland", "Value": "bog" },
+    { "TagId": 187, "Key": "landuse", "Value": "vineyard" },
+    { "TagId": 188, "Key": "waterway", "Value": "canal" },
+    { "TagId": 189, "Key": "addr:housenumber", "Value": "27" },
+    { "TagId": 190, "Key": "addr:housenumber", "Value": "28" },
+    { "TagId": 191, "Key": "maxspeed", "Value": "70" },
+    { "TagId": 192, "Key": "roof:levels", "Value": "1" },
+    { "TagId": 193, "Key": "landuse", "Value": "reservoir" },
+    { "TagId": 194, "Key": "man_made", "Value": "pier" },
+    { "TagId": 195, "Key": "lanes:backward", "Value": "1" },
+    { "TagId": 196, "Key": "noname", "Value": "yes" },
+    { "TagId": 197, "Key": "maxspeed", "Value": "100" },
+    { "TagId": 198, "Key": "frequency", "Value": "0" },
+    { "TagId": 199, "Key": "building", "Value": "barn" },
+    { "TagId": 200, "Key": "addr:housenumber", "Value": "30" },
+    { "TagId": 201, "Key": "building:material", "Value": "cement_block" },
+    { "TagId": 202, "Key": "landuse", "Value": "cemetery" },
+    { "TagId": 203, "Key": "highway", "Value": "primary_link" },
+    { "TagId": 204, "Key": "power", "Value": "minor_line" },
+    { "TagId": 205, "Key": "cables", "Value": "3" },
+    { "TagId": 206, "Key": "addr:housenumber", "Value": "29" },
+    { "TagId": 207, "Key": "sport", "Value": "tennis" },
+    { "TagId": 208, "Key": "surface", "Value": "compacted" },
+    { "TagId": 209, "Key": "access", "Value": "permissive" },
+    { "TagId": 210, "Key": "addr:street:type", "Value": "Avenue" },
+    { "TagId": 211, "Key": "width", "Value": "2" },
+    { "TagId": 212, "Key": "hgv", "Value": "designated" },
+    { "TagId": 213, "Key": "smoothness", "Value": "excellent" },
+    { "TagId": 214, "Key": "addr:housenumber", "Value": "31" },
+    { "TagId": 215, "Key": "wheelchair", "Value": "yes" },
+    { "TagId": 216, "Key": "addr:housenumber", "Value": "32" },
+    { "TagId": 217, "Key": "building", "Value": "farm_auxiliary" },
+    { "TagId": 218, "Key": "boat", "Value": "no" },
+    { "TagId": 219, "Key": "horse", "Value": "yes" },
+    { "TagId": 220, "Key": "access", "Value": "customers" },
+    { "TagId": 221, "Key": "power", "Value": "substation" },
+    { "TagId": 222, "Key": "maxspeed", "Value": "25 mph" },
+    { "TagId": 223, "Key": "sac_scale", "Value": "hiking" },
+    { "TagId": 224, "Key": "power", "Value": "generator" },
+    { "TagId": 225, "Key": "residential", "Value": "rural" },
+    { "TagId": 226, "Key": "lanes:forward", "Value": "1" },
+    { "TagId": 227, "Key": "fee", "Value": "no" },
+    { "TagId": 228, "Key": "width", "Value": "3" },
+    { "TagId": 229, "Key": "leaf_cycle", "Value": "deciduous" },
+    { "TagId": 230, "Key": "cycleway", "Value": "lane" },
+    { "TagId": 231, "Key": "natural", "Value": "heath" },
+    { "TagId": 232, "Key": "addr:housenumber", "Value": "33" },
+    { "TagId": 233, "Key": "CLC:year", "Value": "2006" },
+    { "TagId": 234, "Key": "building:material", "Value": "brick" },
+    { "TagId": 235, "Key": "addr:housenumber", "Value": "34" },
+    { "TagId": 236, "Key": "sidewalk", "Value": "none" },
+    { "TagId": 237, "Key": "generator:source", "Value": "solar" },
+    { "TagId": 238, "Key": "maxspeed", "Value": "20" },
+    { "TagId": 239, "Key": "passenger_lines", "Value": "2" },
+    { "TagId": 240, "Key": "addr:housenumber", "Value": "35" },
+    { "TagId": 241, "Key": "addr:housenumber", "Value": "36" },
+    { "TagId": 242, "Key": "waterway", "Value": "riverbank" },
+    { "TagId": 243, "Key": "smoothness", "Value": "intermediate" },
+    { "TagId": 244, "Key": "generator:method", "Value": "photovoltaic" },
+    { "TagId": 245, "Key": "roof:shape", "Value": "hipped" },
+    { "TagId": 246, "Key": "highway", "Value": "secondary_link" },
+    { "TagId": 247, "Key": "surface", "Value": "sand" },
+    { "TagId": 248, "Key": "maxspeed", "Value": "90" },
+    { "TagId": 249, "Key": "meadow", "Value": "agricultural" },
+    { "TagId": 250, "Key": "building", "Value": "church" },
+    { "TagId": 251, "Key": "leaf_type", "Value": "needleleaved" },
+    { "TagId": 252, "Key": "living_street", "Value": "yes" },
+    { "TagId": 253, "Key": "incline", "Value": "up" },
+    { "TagId": 254, "Key": "service", "Value": "siding" },
+    { "TagId": 255, "Key": "access", "Value": "destination" },
+    { "TagId": 256, "Key": "toll", "Value": "yes" },
+    { "TagId": 257, "Key": "addr:housenumber", "Value": "37" },
+    { "TagId": 258, "Key": "voltage", "Value": "25000" },
+    { "TagId": 259, "Key": "railway", "Value": "abandoned" },
+    { "TagId": 260, "Key": "landuse", "Value": "commercial" },
+    { "TagId": 261, "Key": "place", "Value": "islet" },
+    { "TagId": 262, "Key": "addr:housenumber", "Value": "38" },
+    { "TagId": 263, "Key": "building:ruian:type", "Value": "8" },
+    { "TagId": 264, "Key": "public_transport", "Value": "platform" },
+    { "TagId": 265, "Key": "building:flats", "Value": "2" },
+    { "TagId": 266, "Key": "sidewalk", "Value": "right" },
+    { "TagId": 267, "Key": "man_made", "Value": "storage_tank" },
+    { "TagId": 268, "Key": "addr:housenumber", "Value": "40" },
+    { "TagId": 269, "Key": "natural", "Value": "sand" },
+    { "TagId": 270, "Key": "smoothness", "Value": "bad" },
+    { "TagId": 271, "Key": "addr:housenumber", "Value": "39" },
+    { "TagId": 272, "Key": "landuse", "Value": "allotments" },
+    { "TagId": 273, "Key": "mtb:scale", "Value": "0" },
+    { "TagId": 274, "Key": "amenity", "Value": "parking_space" },
+    { "TagId": 275, "Key": "building:units", "Value": "2" },
+    { "TagId": 276, "Key": "cycleway", "Value": "no" },
+    { "TagId": 277, "Key": "landuse", "Value": "basin" },
+    { "TagId": 278, "Key": "water", "Value": "intermittent" },
+    { "TagId": 279, "Key": "man_made", "Value": "cutline" },
+    { "TagId": 280, "Key": "lanes:forward", "Value": "2" },
+    { "TagId": 281, "Key": "maxspeed", "Value": "45 mph" },
+    { "TagId": 282, "Key": "highway", "Value": "road" },
+    { "TagId": 283, "Key": "addr:housenumber", "Value": "41" },
+    { "TagId": 284, "Key": "water", "Value": "reservoir" },
+    { "TagId": 285, "Key": "barrier", "Value": "retaining_wall" },
+    { "TagId": 286, "Key": "addr:housenumber", "Value": "42" },
+    { "TagId": 287, "Key": "addr:inclusion", "Value": "actual" },
+    { "TagId": 288, "Key": "project:eurosha_2012", "Value": "yes" },
+    { "TagId": 289, "Key": "building:fireproof", "Value": "yes" },
+    { "TagId": 290, "Key": "covered", "Value": "yes" },
+    { "TagId": 291, "Key": "maxspeed", "Value": "20 mph" },
+    { "TagId": 292, "Key": "lanes:backward", "Value": "2" },
+    { "TagId": 293, "Key": "width", "Value": "1" },
+    { "TagId": 294, "Key": "height", "Value": "3" },
+    { "TagId": 295, "Key": "building:material", "Value": "plaster" },
+    { "TagId": 296, "Key": "motor_vehicle", "Value": "yes" },
+    { "TagId": 297, "Key": "leaf_type", "Value": "mixed" },
+    { "TagId": 298, "Key": "addr:housenumber", "Value": "43" },
+    { "TagId": 299, "Key": "addr:housenumber", "Value": "44" },
+    { "TagId": 300, "Key": "amenity", "Value": "restaurant" },
+    { "TagId": 301, "Key": "generator:type", "Value": "solar_photovoltaic_panel" },
+    { "TagId": 302, "Key": "addr:housenumber", "Value": "45" },
+    { "TagId": 303, "Key": "motorcycle", "Value": "yes" },
+    { "TagId": 304, "Key": "building", "Value": "warehouse" },
+    { "TagId": 305, "Key": "addr:housenumber", "Value": "46" },
+    { "TagId": 306, "Key": "voltage", "Value": "15000" },
+    { "TagId": 307, "Key": "golf", "Value": "bunker" },
+    { "TagId": 308, "Key": "landuse", "Value": "retail" },
+    { "TagId": 309, "Key": "crossing", "Value": "zebra" },
+    { "TagId": 310, "Key": "usage", "Value": "branch" },
+    { "TagId": 311, "Key": "surface", "Value": "cobblestone" },
+    { "TagId": 312, "Key": "roof:orientation", "Value": "across" },
+    { "TagId": 313, "Key": "highway", "Value": "construction" },
+    { "TagId": 314, "Key": "highway", "Value": "tertiary_link" },
+    { "TagId": 315, "Key": "building", "Value": "service" },
+    { "TagId": 316, "Key": "addr:housenumber", "Value": "47" },
+    { "TagId": 317, "Key": "height", "Value": "6" },
+    { "TagId": 318, "Key": "building:material", "Value": "wood" },
+    { "TagId": 319, "Key": "addr:housenumber", "Value": "50" },
+    { "TagId": 320, "Key": "mtb:scale", "Value": "1" },
+    { "TagId": 321, "Key": "addr:housenumber", "Value": "48" },
+    { "TagId": 322, "Key": "aeroway", "Value": "taxiway" },
+    { "TagId": 323, "Key": "designation", "Value": "public_footpath" },
+    { "TagId": 324, "Key": "wetland", "Value": "swamp" },
+    { "TagId": 325, "Key": "sac_scale", "Value": "mountain_hiking" },
+    { "TagId": 326, "Key": "embankment", "Value": "yes" },
+    { "TagId": 327, "Key": "maxspeed", "Value": "RO:urban" },
+    { "TagId": 328, "Key": "addr:housenumber", "Value": "49" },
+    { "TagId": 329, "Key": "incline", "Value": "down" },
+    { "TagId": 330, "Key": "frequency", "Value": "16.7" },
+    { "TagId": 331, "Key": "generator:output:electricity", "Value": "yes" },
+    { "TagId": 332, "Key": "barrier", "Value": "kerb" },
+    { "TagId": 333, "Key": "motorcar", "Value": "no" },
+    { "TagId": 334, "Key": "tracks", "Value": "1" },
+    { "TagId": 335, "Key": "addr:housenumber", "Value": "51" },
+    { "TagId": 336, "Key": "passenger_lines", "Value": "1" },
+    { "TagId": 337, "Key": "maxspeed", "Value": "40 mph" },
+    { "TagId": 338, "Key": "admin_level", "Value": "6" },
+    { "TagId": 339, "Key": "maxspeed", "Value": "35 mph" },
+    { "TagId": 340, "Key": "denomination", "Value": "catholic" },
+    { "TagId": 341, "Key": "addr:street:type", "Value": "Street" },
+    { "TagId": 342, "Key": "addr:housenumber", "Value": "52" },
+    { "TagId": 343, "Key": "leaf_cycle", "Value": "evergreen" },
+    { "TagId": 344, "Key": "building", "Value": "static_caravan" },
+    { "TagId": 345, "Key": "roof:orientation", "Value": "along" },
+    { "TagId": 346, "Key": "trail_visibility", "Value": "good" },
+    { "TagId": 347, "Key": "tunnel", "Value": "building_passage" },
+    { "TagId": 348, "Key": "mml:class", "Value": "42261" },
+    { "TagId": 349, "Key": "building:ruian:type", "Value": "13" },
+    { "TagId": 350, "Key": "lcn", "Value": "yes" },
+    { "TagId": 351, "Key": "addr:housenumber", "Value": "53" },
+    { "TagId": 352, "Key": "addr:housenumber", "Value": "54" },
+    { "TagId": 353, "Key": "building:levels", "Value": "6" },
+    { "TagId": 354, "Key": "addr:housenumber", "Value": "55" },
+    { "TagId": 355, "Key": "width", "Value": "4" },
+    { "TagId": 356, "Key": "amenity", "Value": "fuel" },
+    { "TagId": 357, "Key": "building", "Value": "farm" },
+    { "TagId": 358, "Key": "building:condition", "Value": "good" },
+    { "TagId": 359, "Key": "building", "Value": "civic" },
+    { "TagId": 360, "Key": "leisure", "Value": "sports_centre" },
+    { "TagId": 361, "Key": "height", "Value": "2 m" },
+    { "TagId": 362, "Key": "height", "Value": "4.6" },
+    { "TagId": 363, "Key": "roof:colour", "Value": "grey" },
+    { "TagId": 364, "Key": "height", "Value": "4.3" },
+    { "TagId": 365, "Key": "height", "Value": "4.0" },
+    { "TagId": 366, "Key": "building", "Value": "cabin" },
+    { "TagId": 367, "Key": "addr:housenumber", "Value": "56" },
+    { "TagId": 368, "Key": "building:roof", "Value": "metal" },
+    { "TagId": 369, "Key": "sport", "Value": "basketball" },
+    { "TagId": 370, "Key": "height", "Value": "4.2" },
+    { "TagId": 371, "Key": "building:colour", "Value": "white" },
+    { "TagId": 372, "Key": "height", "Value": "4.5" },
+    { "TagId": 373, "Key": "height", "Value": "4.1" },
+    { "TagId": 374, "Key": "wheelchair", "Value": "no" },
+    { "TagId": 375, "Key": "wood", "Value": "deciduous" },
+    { "TagId": 376, "Key": "height", "Value": "4.4" },
+    { "TagId": 377, "Key": "operator", "Value": "PGL LP" },
+    { "TagId": 378, "Key": "amenity", "Value": "shelter" },
+    { "TagId": 379, "Key": "addr:housenumber", "Value": "57" },
+    { "TagId": 380, "Key": "building:levels", "Value": "9" },
+    { "TagId": 381, "Key": "crossing", "Value": "marked" },
+    { "TagId": 382, "Key": "natural", "Value": "scree" },
+    { "TagId": 383, "Key": "addr:housenumber", "Value": "60" },
+    { "TagId": 384, "Key": "sport", "Value": "baseball" },
+    { "TagId": 385, "Key": "addr:housenumber", "Value": "58" },
+    { "TagId": 386, "Key": "voltage", "Value": "3000" },
+    { "TagId": 387, "Key": "man_made", "Value": "pipeline" },
+    { "TagId": 388, "Key": "wetland", "Value": "marsh" },
+    { "TagId": 389, "Key": "place", "Value": "plot" },
+    { "TagId": 390, "Key": "frequency", "Value": "60" },
+    { "TagId": 391, "Key": "railway:pzb", "Value": "yes" },
+    { "TagId": 392, "Key": "maxspeed", "Value": "120" },
+    { "TagId": 393, "Key": "access", "Value": "agricultural" },
+    { "TagId": 394, "Key": "bus", "Value": "yes" },
+    { "TagId": 395, "Key": "lanes", "Value": "5" },
+    { "TagId": 396, "Key": "tourism", "Value": "hotel" },
+    { "TagId": 397, "Key": "landuse", "Value": "quarry" },
+    { "TagId": 398, "Key": "addr:housenumber", "Value": "59" },
+    { "TagId": 399, "Key": "maxspeed", "Value": "60 mph" },
+    { "TagId": 400, "Key": "man_made", "Value": "silo" },
+    { "TagId": 401, "Key": "seasonal", "Value": "yes" },
+    { "TagId": 402, "Key": "admin_level", "Value": "10" },
+    { "TagId": 403, "Key": "height", "Value": "4.7" },
+    { "TagId": 404, "Key": "height", "Value": "3.8" },
+    { "TagId": 405, "Key": "height", "Value": "3.7" },
+    { "TagId": 406, "Key": "noexit", "Value": "yes" },
+    { "TagId": 407, "Key": "shop", "Value": "supermarket" },
+    { "TagId": 408, "Key": "hgv:national_network", "Value": "yes" },
+    { "TagId": 409, "Key": "height", "Value": "4.8" },
+    { "TagId": 410, "Key": "height", "Value": "3.9" },
+    { "TagId": 411, "Key": "railway", "Value": "platform" },
+    { "TagId": 412, "Key": "landuse", "Value": "construction" },
+    { "TagId": 413, "Key": "religion", "Value": "muslim" },
+    { "TagId": 414, "Key": "addr:housenumber", "Value": "61" },
+    { "TagId": 415, "Key": "cycleway", "Value": "track" },
+    { "TagId": 416, "Key": "motorroad", "Value": "yes" },
+    { "TagId": 417, "Key": "at_bev:addr_date", "Value": "2017-04-07" },
+    { "TagId": 418, "Key": "height", "Value": "3.5" },
+    { "TagId": 419, "Key": "building", "Value": "semidetached_house" },
+    { "TagId": 420, "Key": "import", "Value": "budovy201004drev" },
+    { "TagId": 421, "Key": "addr:housenumber", "Value": "62" },
+    { "TagId": 422, "Key": "height", "Value": "4.9" },
+    { "TagId": 423, "Key": "wall", "Value": "dry_stone" },
+    { "TagId": 424, "Key": "abandoned:building", "Value": "yes" },
+    { "TagId": 425, "Key": "shop", "Value": "convenience" },
+    { "TagId": 426, "Key": "height", "Value": "3.6" },
+    { "TagId": 427, "Key": "motorcycle", "Value": "no" },
+    { "TagId": 428, "Key": "motor_vehicle", "Value": "private" },
+    { "TagId": 429, "Key": "height", "Value": "5" },
+    { "TagId": 430, "Key": "golf", "Value": "tee" },
+    { "TagId": 431, "Key": "height", "Value": "5.0" },
+    { "TagId": 432, "Key": "wires", "Value": "single" },
+    { "TagId": 433, "Key": "maxspeed:type", "Value": "sign" },
+    { "TagId": 434, "Key": "layer", "Value": "2" },
+    { "TagId": 435, "Key": "segregated", "Value": "yes" },
+    { "TagId": 436, "Key": "amenity", "Value": "kindergarten" },
+    { "TagId": 437, "Key": "height", "Value": "3 m" },
+    { "TagId": 438, "Key": "addr:housenumber", "Value": "63" },
+    { "TagId": 439, "Key": "addr:housenumber", "Value": "64" },
+    { "TagId": 440, "Key": "waterway", "Value": "dam" },
+    { "TagId": 441, "Key": "usage", "Value": "industrial" },
+    { "TagId": 442, "Key": "gauge", "Value": "1067" },
+    { "TagId": 443, "Key": "surface", "Value": "fine_gravel" },
+    { "TagId": 444, "Key": "addr:housenumber", "Value": "65" },
+    { "TagId": 445, "Key": "crossing", "Value": "unmarked" },
+    { "TagId": 446, "Key": "trail_visibility", "Value": "excellent" },
+    { "TagId": 447, "Key": "man_made", "Value": "works" },
+    { "TagId": 448, "Key": "sidewalk", "Value": "left" },
+    { "TagId": 449, "Key": "railway:traffic_mode", "Value": "mixed" },
+    { "TagId": 450, "Key": "bicycle", "Value": "use_sidepath" },
+    { "TagId": 451, "Key": "hgv", "Value": "yes" },
+    { "TagId": 452, "Key": "surface", "Value": "sett" },
+    { "TagId": 453, "Key": "railway", "Value": "disused" },
+    { "TagId": 454, "Key": "voltage", "Value": "1500" },
+    { "TagId": 455, "Key": "natural", "Value": "beach" }
   ], 
   "TagCodes": [
     { "TagId": 1, "Key": "building", "Value": "yes" },
@@ -3170,8 +1805,7 @@
     "landuse": 103,
     "power": 104, 
     "waterway": 105, 
-    "amenity": 110,
-    ""
+    "amenity": 110
   },
   "KeyStopList":  [] 
 }
