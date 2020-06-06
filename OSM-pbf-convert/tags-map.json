@@ -1791,7 +1791,7 @@
     { "TagId": 255, "Key": "amenity", "Value": "car_rental" },
     
     { "TagId": 280, "Key": "service", "Value": "driveway" },
-    { "TagId": 281, "Key": "service", "Value": "" },
+    { "TagId": 281, "Key": "service", "Value": "" }
     
   ],
   "KeyCodes": {

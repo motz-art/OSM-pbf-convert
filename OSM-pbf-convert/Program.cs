@@ -15,7 +15,7 @@ namespace OSM_pbf_convert
 
             if (args[0] == "blob-index")
                 using (var indexer = PbfFileProcessor.Create(args[1],
-                    new IdsIndexerBlobProcessor(args[1] + ".blobs.dat"), ulong.Parse(args[3])))
+                    new IdsIndexerBlobProcessor(args[1] + ".blobs.dat")))
                 {
                     await indexer.Process().ConfigureAwait(false);
                 }

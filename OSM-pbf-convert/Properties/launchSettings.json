@@ -2,7 +2,7 @@
   "profiles": {
     "OSM-pbf-convert": {
       "commandName": "Project",
-      "commandLineArgs": "join c:\\temp\\OSM\\germany-latest.osm.pbf 1789998615 3112350024"
+      "commandLineArgs": "join c:\\temp\\OSM\\oberbayern-latest.osm.pbf"
     }
   }
 }
