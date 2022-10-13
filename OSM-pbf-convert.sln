@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuffmanCoding", "HuffmanCod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuffmanCoding.Tests", "HuffmanCoding.Tests\HuffmanCoding.Tests.csproj", "{F8A3161D-A02A-459B-99EF-70AE76D646EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsmReader", "OsmReader\OsmReader.csproj", "{70252AAF-F6EA-4244-B2B3-70EF680D737C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmReader", "OsmReader\OsmReader.csproj", "{70252AAF-F6EA-4244-B2B3-70EF680D737C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
