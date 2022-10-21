@@ -41,12 +41,12 @@ namespace OSM_pbf_convert
         private readonly Stream stream;
         private readonly BinaryWriter writer;
 
-        public NodesIndex(string fileName, bool canLoad)
+        public NodesIndex(Configuration config)
         {
-            var indexFileName = fileName + ".idx";
-            var nodesFileName = fileName + ".nodes.dat";
+            var indexFileName = config.PbfFileName + ".idx";
+            var nodesFileName = config.PbfFileName + ".nodes.dat";
 
-            if (canLoad && File.Exists(indexFileName))
+            if (config.CanReadExistingFiles && File.Exists(indexFileName))
             {
                 memFile = MemoryMappedFile.CreateFromFile(nodesFileName, FileMode.Open, "nodes.dat");
 

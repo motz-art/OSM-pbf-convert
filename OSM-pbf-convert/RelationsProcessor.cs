@@ -156,13 +156,13 @@ namespace OSM_pbf_convert
 
         private string fileName;
 
-        public RelationsProcessor(string fileName)
+        public RelationsProcessor(Configuration conf)
         {
-            this.fileName = fileName;
+            fileName = conf.PbfFileName;
             waysData = new WaysDataFile(fileName + ".ways.dat");
-            nodesIndex = new NodesIndex(fileName, true);
+            nodesIndex = new NodesIndex(conf);
             relationsFile = new RelationsFile(fileName + ".rels");
-            spatialIndex = new SpatialIndex(); // ToDo: implement usage continuation.
+            spatialIndex = new SpatialIndex(conf.DataPath); // ToDo: implement usage continuation.
         }
 
         public string BlobRead(Blob blob)

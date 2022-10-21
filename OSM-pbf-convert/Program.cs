@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace OSM_pbf_convert
@@ -11,6 +12,23 @@ namespace OSM_pbf_convert
             {
                 Console.WriteLine("Pbf action and file name is not specified.");
                 return;
+            }
+
+            var configuration = new Configuration
+            {
+                ActionName = args[0],
+                PbfFileName = args[1],
+                CanReadExistingFiles = false
+            };
+
+            if (args.Length > 2)
+            {
+                configuration.WaysStartOffset = ulong.Parse(args[2], CultureInfo.InvariantCulture);
+            }
+
+            if (args.Length > 3)
+            {
+                configuration.RelationsStartOffset = ulong.Parse(args[3], CultureInfo.InvariantCulture);
             }
 
             if (args[0] == "blob-index")
@@ -29,7 +47,7 @@ namespace OSM_pbf_convert
             if (args[0] == "join")
                 using (var indexer = PbfFileProcessor.Create(
                     args[1],
-                    new NodesToWaysJoinProcessor(args[1], true),
+                    new NodesToWaysJoinProcessor(configuration),
                      0 //ulong.Parse(args[2])
                     ))
                 {
@@ -49,7 +67,7 @@ namespace OSM_pbf_convert
                 }
 
             if (args[0] == "spatial")
-                using (var indexer = PbfFileProcessor.Create(args[1], new SpatialProcessor()))
+                using (var indexer = PbfFileProcessor.Create(args[1], new SpatialProcessor(new SpatialIndex(configuration.DataPath))))
                 {
                     await indexer.Process().ConfigureAwait(false);
                 }
@@ -61,7 +79,7 @@ namespace OSM_pbf_convert
                 }
 
             if (args[0] == "merge-rel")
-                using (var processor = new RelationsProcessor(args[1]))
+                using (var processor = new RelationsProcessor(configuration))
                 using (var fileProcessor = PbfFileProcessor.Create(args[1], processor, ulong.Parse(args[3])))
                 {
                     await fileProcessor.Process().ConfigureAwait(false);

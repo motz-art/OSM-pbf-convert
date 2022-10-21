@@ -29,9 +29,13 @@ namespace OSM_pbf_convert
 
     public class SpatialProcessor : IBlobProcessor<string>
     {
-        private readonly SpatialIndex index = new SpatialIndex();
+        private readonly SpatialIndex index;
         private long totalCnt;
 
+        public SpatialProcessor(SpatialIndex index)
+        {
+            this.index = index;
+        }
 
         public string BlobRead(Blob blob)
         {

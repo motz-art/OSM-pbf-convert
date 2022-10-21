@@ -11,7 +11,7 @@ namespace OSM_pbf_convert
         IBlobProcessor<string>,
         IDisposable
     {
-        private readonly SpatialIndex spatialIndex = new SpatialIndex();
+        private readonly SpatialIndex spatialIndex;
         private readonly NodesIndex nodesIndex;
         private readonly WaysDataFile waysDataFile;
 
@@ -28,11 +28,12 @@ namespace OSM_pbf_convert
         private long maxDiffId;
         private TagsConverter tagsConverter = new TagsConverter();
 
-        public NodesToWaysJoinProcessor(string fileName, bool canLoad)
+        public NodesToWaysJoinProcessor(Configuration conf)
         {
             tagsConverter.LoadSettings("./tags-map.json");
-            waysDataFile = new WaysDataFile(fileName + ".ways.dat");
-            nodesIndex = new NodesIndex(fileName, canLoad);
+            waysDataFile = new WaysDataFile(conf.PbfFileName + ".ways.dat");
+            nodesIndex = new NodesIndex(conf);
+            spatialIndex = new SpatialIndex(conf.DataPath);
         }
 
         public string BlobRead(Blob blob)

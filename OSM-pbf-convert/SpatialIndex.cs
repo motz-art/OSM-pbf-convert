@@ -6,12 +6,19 @@ namespace OSM_pbf_convert
 {
     public class NameGenerator
     {
+        private readonly string path;
+
+        public NameGenerator(string path)
+        {
+            this.path = path;
+        }
+
         public int Counter { get; set; }
 
         public string GetNextFileName()
         {
             Counter++;
-            return $"./Blocks/sp-{Counter:0000}.map";
+            return Path.Combine(path, $"sp-{Counter:0000}.map");
         }
     }
 
@@ -19,17 +26,19 @@ namespace OSM_pbf_convert
     {
         private const int BlockLimit = 20_000_000;
         private const int ReducedBlockLimit = 10_000;
-        private const string SplitInfoFileName = "./Blocks/spatial-split-info.dat";
+        private readonly string splitInfoFileName;
 
-        private readonly NameGenerator generatror = new NameGenerator();
+        private readonly NameGenerator generator;
 
         private readonly SpatialSplitInfo root;
 
-        public SpatialIndex()
+        public SpatialIndex(string location)
         {
+            splitInfoFileName = Path.Combine(location, "spatial-split-info.dat");
+            generator = new NameGenerator(location);
             root = new SpatialSplitInfo
             {
-                Block = new SpatialBlock(generatror.GetNextFileName())
+                Block = new SpatialBlock(generator.GetNextFileName())
             };
             root = ReadSplitInfo();
         }
@@ -90,22 +99,17 @@ namespace OSM_pbf_convert
 
         private SpatialSplitInfo ReadSplitInfo()
         {
-            if (!File.Exists(SplitInfoFileName)) return root;
-            using (var stream = File.Open(SplitInfoFileName, FileMode.Open, FileAccess.Read))
-            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
-            {
-                return ReadSplitInfo(reader);
-            }
+            if (!File.Exists(splitInfoFileName)) return root;
+            using var stream = File.Open(splitInfoFileName, FileMode.Open, FileAccess.Read);
+            using var reader = new BinaryReader(stream, Encoding.UTF8, true);
+            return ReadSplitInfo(reader);
         }
 
         private void WriteSplitInfo()
         {
-            using (var stream = File.Open(SplitInfoFileName, FileMode.Create, FileAccess.Write))
-            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
-            {
-                WriteSplitInfo(root, writer);
-            }
-
+            using var stream = File.Open(splitInfoFileName, FileMode.Create, FileAccess.Write);
+            using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
+            WriteSplitInfo(root, writer);
         }
 
         private SpatialSplitInfo ReadSplitInfo(BinaryReader reader)
@@ -158,7 +162,7 @@ namespace OSM_pbf_convert
         {
             var block = spatialSplitInfo.Block;
 
-            var splitInfo = block.Split(generatror, size);
+            var splitInfo = block.Split(generator, size);
 
             spatialSplitInfo.SplitByLatitude = splitInfo.SplitByLatitude;
             spatialSplitInfo.SplitValue = splitInfo.SplitValue;
