@@ -124,7 +124,9 @@ namespace OSM_pbf_convert
             relsCount++;
 
             relIdWriter.WriteZigZag(rel.Id);
-            writer.Write7BitEncodedInt((int)rel.ObjectType);
+            writer.Write7BitEncodedInt(rel.Position);
+            writer.Write7BitEncodedInt(rel.RelType);
+            writer.Write7BitEncodedInt(rel.RoleId);
             relLatWriter.WriteZigZag(rel.MidLat);
             relLatWriter.WriteZigZag(rel.MidLon);
             writer.Write7BitEncodedInt((int)rel.ItemType);
@@ -255,7 +257,9 @@ namespace OSM_pbf_convert
             {
                 var id = relIdReader.ReadZigZag();
                 if (id == 0) break;
+                var position = (int) reader.Read7BitEncodedInt();
                 var type = (int) reader.Read7BitEncodedInt();
+                var roleId = (int) reader.Read7BitEncodedInt();
                 var lat = relLatReader.ReadZigZag();
                 var lon = relLonReader.ReadZigZag();
                 var itemType = (int) reader.Read7BitEncodedInt();
@@ -265,7 +269,9 @@ namespace OSM_pbf_convert
                 allRels.Add(new SRel
                 {
                     Id = id,
+                    Position = position,
                     RelType = type,
+                    RoleId = roleId,
                     MidLat = (int)lat,
                     MidLon = (int)lon,
                     ItemType = (RelationMemberTypes) itemType,
@@ -544,7 +550,7 @@ namespace OSM_pbf_convert
             stream?.Dispose();
         }
     }
-
+    
     public class SpatialSplitInfoExtended
     {
         public List<IMapObject> Items { get; set; }

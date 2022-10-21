@@ -11,6 +11,8 @@ namespace OSM_pbf_convert
         public long ItemId { get; set; }
 
         public int RelType { get; set; }
+        public int RoleId { get; set; }
+        public int Position { get; set; }
         public IList<STagInfo> Tags { get; set; }
 
         public RelationMemberTypes ObjectType => RelationMemberTypes.Relation;
