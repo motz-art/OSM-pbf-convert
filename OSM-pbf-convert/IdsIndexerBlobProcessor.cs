@@ -81,9 +81,9 @@ namespace OSM_pbf_convert
                     maxMembersCount = Math.Max(maxMembersCount, itemsCount);
                     totalMemberCount += (ulong) itemsCount;
 
-                    if (itemsCount > 400)
+                    if (itemsCount > memberCounts.Length)
                     {
-                        itemsCount = 400;
+                        itemsCount = memberCounts.Length;
                     }
                     if (itemsCount < memberCounts.Length)
                     {
