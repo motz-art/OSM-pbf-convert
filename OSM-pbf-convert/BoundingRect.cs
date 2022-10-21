@@ -80,5 +80,29 @@ namespace OSM_pbf_convert
             writer.Write7BitEncodedInt(rect.MaxLat - rect.MinLat);
             writer.Write7BitEncodedInt(rect.MaxLon - rect.MinLon);
         }
+
+        public static void SkipBoundingRect(this BinaryReader reader)
+        {
+            reader.Skip7BitInt();
+            reader.Skip7BitInt();
+            reader.Skip7BitInt();
+            reader.Skip7BitInt();
+        }
+
+        public static BoundingRect ReadBoundingRect(this BinaryReader reader)
+        {
+            var minLat = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+            var minLon = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+
+            var sizeLat = (int) reader.Read7BitEncodedInt();
+            var sizeLon = (int) reader.Read7BitEncodedInt();
+            return new BoundingRect
+            {
+                MinLat = minLat,
+                MinLon = minLon,
+                MaxLat = minLat + sizeLat,
+                MaxLon = minLon + sizeLon
+            };
+        }
     }
 }
