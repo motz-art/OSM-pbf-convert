@@ -86,7 +86,7 @@ namespace OsmReader
 
                 if (ids.Count != latitudes.Count || ids.Count != longitudes.Count)
                     throw new InvalidOperationException(
-                        "Dense node should have equal couont of Ids, Longitudes and Latitudes");
+                        "Dense node should have equal count of Ids, Longitudes and Latitudes");
 
                 for (var i = 0; i < ids.Count; i++)
                 {
