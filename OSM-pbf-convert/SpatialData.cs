@@ -43,7 +43,7 @@ namespace OSM_pbf_convert
                 {
                     while (reader.CanRead())
                     {
-                        last += reader.Read7BitEncodedInt();
+                        last += reader.Read7BitEncodedUInt64();
                         yield return last;
                     }
                 }

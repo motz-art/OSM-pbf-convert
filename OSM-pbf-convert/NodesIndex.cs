@@ -93,7 +93,7 @@ namespace OSM_pbf_convert
                         break;
                     }
 
-                    lastIndexId += (long)reader.Read7BitEncodedInt();
+                    lastIndexId += (long)reader.Read7BitEncodedUInt64();
 
                     index.Add(new NodesOffset
                     {

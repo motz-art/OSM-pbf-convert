@@ -227,7 +227,7 @@ namespace OSM_pbf_convert
                 var lastStart = stream.Position;
                 var id = wayIdReader.ReadZigZag();
                 if (id == 0) break;
-                var type = (int) reader.Read7BitEncodedInt();
+                var type = (int) reader.Read7BitEncodedUInt64();
                 var nodes = ReadWayNodes();
                 var tags = ReadTags();
 
@@ -257,13 +257,13 @@ namespace OSM_pbf_convert
             {
                 var id = relIdReader.ReadZigZag();
                 if (id == 0) break;
-                var position = (int) reader.Read7BitEncodedInt();
-                var type = (int) reader.Read7BitEncodedInt();
-                var roleId = (int) reader.Read7BitEncodedInt();
+                var position = (int) reader.Read7BitEncodedUInt64();
+                var type = (int) reader.Read7BitEncodedUInt64();
+                var roleId = (int) reader.Read7BitEncodedUInt64();
                 var lat = relLatReader.ReadZigZag();
                 var lon = relLonReader.ReadZigZag();
-                var itemType = (int) reader.Read7BitEncodedInt();
-                var itemId = (long) reader.Read7BitEncodedInt();
+                var itemType = (int) reader.Read7BitEncodedUInt64();
+                var itemId = (long) reader.Read7BitEncodedUInt64();
                 var tags = ReadTags();
 
                 allRels.Add(new SRel
@@ -285,7 +285,7 @@ namespace OSM_pbf_convert
 
         private List<WayNode> ReadWayNodes()
         {
-            var count = (int) reader.Read7BitEncodedInt();
+            var count = (int) reader.Read7BitEncodedUInt64();
 
             wayLatReader.Reset();
             wayLonReader.Reset();
@@ -486,11 +486,11 @@ namespace OSM_pbf_convert
             var lon = 0;
             while (stream.Position < stream.Length)
             {
-                var inc = EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+                var inc = EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
                 if (inc == 0) break;
                 id += inc;
-                lat += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
-                lon += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+                lat += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
+                lon += (int) EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
 
                 var tags = ReadTags();
 
@@ -508,7 +508,7 @@ namespace OSM_pbf_convert
 
         private List<STagInfo> ReadTags()
         {
-            var count = (int)reader.Read7BitEncodedInt();
+            var count = (int)reader.Read7BitEncodedUInt64();
             var tags = new List<STagInfo>(count);
 
             for (var i = 0; i < count; i++)
@@ -518,10 +518,10 @@ namespace OSM_pbf_convert
                 switch (type)
                 {
                     case 1:
-                        tag.TagId = (int)reader.Read7BitEncodedInt();
+                        tag.TagId = (int)reader.Read7BitEncodedUInt64();
                         break;
                     case 2:
-                        tag.KeyId = (int) reader.Read7BitEncodedInt();
+                        tag.KeyId = (int) reader.Read7BitEncodedUInt64();
                         tag.Value = reader.ReadString();
                         break;
                     case 3:

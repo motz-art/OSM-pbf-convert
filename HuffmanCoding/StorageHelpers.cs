@@ -51,7 +51,7 @@ namespace HuffmanCoding
             }
         }
 
-        public static ulong Read7BitEncodedInt(this BinaryReader reader)
+        public static ulong Read7BitEncodedUInt64(this BinaryReader reader)
         {
             if (reader == null) throw new ArgumentNullException(nameof(reader));
 
@@ -79,7 +79,7 @@ namespace HuffmanCoding
             }while (b >= 0b1000_0000);
         }
 
-        public static ulong Read7BitEncodedInt(this BufByteReader reader)
+        public static ulong Read7BitEncodedUInt64(this BufByteReader reader)
         {
             if (reader == null) throw new ArgumentNullException(nameof(reader));
 

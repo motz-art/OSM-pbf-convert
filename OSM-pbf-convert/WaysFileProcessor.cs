@@ -107,15 +107,15 @@ namespace OSM_pbf_convert
 
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                id += reader.Read7BitEncodedInt();
-                var count = (int)reader.Read7BitEncodedInt();
+                id += reader.Read7BitEncodedUInt64();
+                var count = (int)reader.Read7BitEncodedUInt64();
                 var list = new List<MapNode>(count);
                 var lat = 0;
                 var lon = 0;
                 for (int i = 0; i < count; i++)
                 {
-                    lat += (int) reader.Read7BitEncodedInt();
-                    lon += (int) reader.Read7BitEncodedInt();
+                    lat += (int) reader.Read7BitEncodedUInt64();
+                    lon += (int) reader.Read7BitEncodedUInt64();
 
                     var node= new MapNode
                     {

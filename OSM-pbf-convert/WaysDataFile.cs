@@ -164,7 +164,7 @@ namespace OSM_pbf_convert
 
                 cnt++;
                 var offset = infoStream.Position;
-                var wayId = infoReader.Read7BitEncodedInt();
+                var wayId = infoReader.Read7BitEncodedUInt64();
 
                 AddOffsetsIndex(wayId, offset);
 
@@ -190,18 +190,18 @@ namespace OSM_pbf_convert
             var offsetLimit = offsetIndex < offsets.Count - 1 ? offsets[offsetIndex + 1].Offset : infoLength;
             while (infoStream.Position < offsetLimit)
             {
-                var cid = infoReader.Read7BitEncodedInt();
+                var cid = infoReader.Read7BitEncodedUInt64();
                 if (cid == id)
                 {
-                    var dataOffset = infoReader.Read7BitEncodedInt();
+                    var dataOffset = infoReader.Read7BitEncodedUInt64();
                     var minLat = infoReader.ReadInt32();
                     var minLon = infoReader.ReadInt32();
 
-                    var midLat = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedInt()) + minLat;
-                    var midLon = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedInt()) + minLon;
+                    var midLat = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedUInt64()) + minLat;
+                    var midLon = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedUInt64()) + minLon;
 
-                    var maxLat = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedInt()) + midLat;
-                    var maxLon = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedInt()) + midLon;
+                    var maxLat = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedUInt64()) + midLat;
+                    var maxLon = (int)EncodeHelpers.DecodeZigZag(infoReader.Read7BitEncodedUInt64()) + midLon;
                     return new WayInfo
                     {
                         Id = cid,
@@ -327,7 +327,7 @@ namespace OSM_pbf_convert
         {
             idReader.ReadIncrementOnly();
 
-            var nodesCount = (int)waysReader.Read7BitEncodedInt();
+            var nodesCount = (int)waysReader.Read7BitEncodedUInt64();
 
             var nodes = sWay.Nodes = new List<WayNode>(nodesCount);
 

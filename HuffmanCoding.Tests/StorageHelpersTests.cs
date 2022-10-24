@@ -26,7 +26,7 @@ namespace HuffmanCoding.Tests
                 stream.Position = 0;
                 var reader = new BinaryReader(stream, Encoding.UTF8, false);
 
-                StorageHelpers.Read7BitEncodedInt(reader).Should().Be(value);
+                StorageHelpers.Read7BitEncodedUInt64(reader).Should().Be(value);
             }
         }
     }

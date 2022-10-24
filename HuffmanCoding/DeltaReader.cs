@@ -24,13 +24,13 @@ namespace HuffmanCoding
 
         public long ReadZigZag()
         {
-            lastSigned += EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+            lastSigned += EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
             return lastSigned;
         }
 
         public ulong ReadIncrementOnly()
         {
-            lastUnsigned += reader.Read7BitEncodedInt();
+            lastUnsigned += reader.Read7BitEncodedUInt64();
             return lastUnsigned;
         }
     }

@@ -91,11 +91,11 @@ namespace OSM_pbf_convert
 
         public static BoundingRect ReadBoundingRect(this BinaryReader reader)
         {
-            var minLat = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
-            var minLon = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedInt());
+            var minLat = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
+            var minLon = (int)EncodeHelpers.DecodeZigZag(reader.Read7BitEncodedUInt64());
 
-            var sizeLat = (int) reader.Read7BitEncodedInt();
-            var sizeLon = (int) reader.Read7BitEncodedInt();
+            var sizeLat = (int) reader.Read7BitEncodedUInt64();
+            var sizeLon = (int) reader.Read7BitEncodedUInt64();
             return new BoundingRect
             {
                 MinLat = minLat,
